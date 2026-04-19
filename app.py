@@ -37,7 +37,7 @@ database_url = os.environ.get('DATABASE_URL')
 if database_url and database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
 
-SUPABASE_DB_URL = "postgresql://postgres.mfdotnwtjbqqnkgcblph:ZBYQJuTybrtXYceK@aws-0-eu-west-1.pooler.supabase.com:6543/postgres"
+SUPABASE_DB_URL = "postgresql://postgres.mfdotnwtjbqqnkgcblph:Lee%23%23%23%40hrjkz@aws-0-eu-west-1.pooler.supabase.com:5432/postgres"
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url or SUPABASE_DB_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'secretkey_fallback')
