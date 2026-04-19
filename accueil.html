@@ -582,7 +582,8 @@
             .liste-categories {
                 flex-direction: column;
                 width: 100%;
-                background: transparent;
+                background: rgba(0,0,0,0.85); /* Fond transparent mais assombri */
+                backdrop-filter: blur(10px);
                 border: none;
                 padding: 0;
                 margin: 0;
@@ -611,7 +612,7 @@
             }
 
             .visuel-produit {
-                height: 250px; /* Grande image pour scroller */
+                height: 200px; /* Réduit un peu l'affichage pour voir plus de choses */
                 padding: 12px;
             }
 
@@ -777,16 +778,29 @@
                                         </AnimatePresence>
                                     )}
                                 </div>
-                                <div style={{ padding: 30, borderTop: '1px solid rgba(255,255,255,0.05)', background: '#0a0a0a' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 25, fontSize: '1.3rem', fontWeight: 'bold' }}>
+                                <div style={{ padding: 30, borderTop: '1px solid rgba(255,255,255,0.05)', background: '#0a0a0a', textAlign: 'center' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20, fontSize: '1.3rem', fontWeight: 'bold' }}>
                                         <span>Total</span>
                                         <span style={{ color: 'var(--accent)' }}>{total.toLocaleString()} USD</span>
                                     </div>
+
+                                    {/* Logos Mobile Money */}
+                                    <div style={{display: 'flex', justifyContent: 'center', gap: 10, marginBottom: 15, flexWrap: 'wrap'}}>
+                                        <div style={{background: '#e03027', color:'white', fontWeight:'bold', padding: '5px 10px', borderRadius:8, fontSize:'0.75rem'}}>Airtel</div>
+                                        <div style={{background: '#ff7900', color:'white', fontWeight:'bold', padding: '5px 10px', borderRadius:8, fontSize:'0.75rem'}}>Orange</div>
+                                        <div style={{background: '#4CAF50', color:'white', fontWeight:'bold', padding: '5px 10px', borderRadius:8, fontSize:'0.75rem'}}>M-Pesa</div>
+                                        <div style={{background: '#e50000', color:'white', fontWeight:'bold', padding: '5px 10px', borderRadius:8, fontSize:'0.75rem'}}>Afrimoney</div>
+                                    </div>
+                                    
                                     <button
                                         onClick={() => { onClose(); onCheckout(panier); }}
-                                        style={{ width: '100%', padding: '18px', background: 'var(--accent)', color: 'white', borderRadius: 100, border: 'none', fontWeight: 'bold', fontSize: '1.1rem', cursor: 'pointer', boxShadow: '0 10px 20px rgba(249, 115, 22, 0.25)' }}>
-                                        Procéder au paiement
+                                        style={{ width: '100%', padding: '16px', background: 'transparent', color: 'var(--accent)', border: '2px solid var(--accent)', borderRadius: 100, fontWeight: 'bold', fontSize: '1.05rem', cursor: 'pointer', marginBottom: 12 }}>
+                                        Paiement à la livraison
                                     </button>
+                                    <p style={{color: '#ef4444', fontWeight: '600', fontSize: '0.9rem', margin: 0}}>
+                                        <i className="fas fa-exclamation-circle" style={{marginRight: 6}}></i>
+                                        Paiement mobile indisponible pour le moment.
+                                    </p>
                                 </div>
                             </motion.div>
                         </>
@@ -895,7 +909,7 @@
             const [localLikes, setLocalLikes] = React.useState(0);
             const [avisList, setAvisList] = React.useState([]);
             const [newAvis, setNewAvis] = React.useState("");
-            const [newAuteur, setNewAuteur] = React.useState("");
+            const [rating, setRating] = React.useState(5);
             const [submitted, setSubmitted] = React.useState(false);
 
             React.useEffect(() => {
@@ -906,33 +920,42 @@
                         setAvisList(data.commentaires);
                     })
                     .catch(() => { });
+                
+                const likedItems = JSON.parse(localStorage.getItem('likedProducts') || '[]');
+                if (likedItems.includes(p.id)) { setIsLiked(true); }
+
                 // Bloquer le scroll du body
                 document.body.style.overflow = 'hidden';
                 return () => { document.body.style.overflow = ''; };
             }, [p.id]);
 
             const handleLike = () => {
-                const updatedLike = !isLiked;
-                setIsLiked(updatedLike);
-                setLocalLikes(prev => updatedLike ? prev + 1 : prev - 1);
+                if (isLiked) return; // Un seul like possible
+                setIsLiked(true);
+                setLocalLikes(prev => prev + 1);
+
+                const likedItems = JSON.parse(localStorage.getItem('likedProducts') || '[]');
+                likedItems.push(p.id);
+                localStorage.setItem('likedProducts', JSON.stringify(likedItems));
+
                 fetch('/api/avis', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id_produit: p.id, is_liked: updatedLike, commentaire: "" })
+                    body: JSON.stringify({ id_produit: p.id, is_liked: true, commentaire: "" })
                 });
             };
 
             const submitAvis = (e) => {
                 e.preventDefault();
                 if (!newAvis.trim()) return;
+                const texteEtoiles = '⭐'.repeat(rating) + (rating < 5 ? '☆'.repeat(5-rating) : '') + ' - ' + newAvis.trim();
                 fetch('/api/avis', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id_produit: p.id, auteur: newAuteur.trim() || 'Anonyme', commentaire: newAvis.trim() })
+                    body: JSON.stringify({ id_produit: p.id, auteur: 'Anonyme', commentaire: texteEtoiles })
                 }).then(() => {
-                    setAvisList(prev => [{ auteur: newAuteur.trim() || 'Anonyme', commentaire: newAvis.trim(), date: 'À l\'instant' }, ...prev]);
+                    setAvisList(prev => [{ auteur: 'Anonyme', commentaire: texteEtoiles, date: 'À l\'instant' }, ...prev]);
                     setNewAvis("");
-                    setNewAuteur("");
                     setSubmitted(true);
                     setTimeout(() => setSubmitted(false), 3000);
                 });
@@ -1014,11 +1037,15 @@
                                     ))}
                                 </div>
 
-                                {/* Formulaire commentaire */}
+                                {/* Formulaire commentaire avec Etoiles */}
                                 <form onSubmit={submitAvis} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                                    <input type="text" placeholder="Votre nom (optionnel)" value={newAuteur}
-                                        onChange={e => setNewAuteur(e.target.value)}
-                                        style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '11px 14px', borderRadius: 10, fontFamily: 'Outfit', fontSize: '0.95rem', outline: 'none' }} />
+                                    <div style={{display: 'flex', gap: 8, justifyContent: 'center', marginBottom: 10}}>
+                                        {[1,2,3,4,5].map(star => (
+                                            <i key={star} className={star <= rating ? "fas fa-star" : "far fa-star"} 
+                                               style={{color: '#f59e0b', fontSize: '1.8rem', cursor: 'pointer', transition: 'transform 0.2s'}}
+                                               onClick={() => setRating(star)} />
+                                        ))}
+                                    </div>
                                     <textarea placeholder="Votre commentaire..." required value={newAvis}
                                         onChange={e => setNewAvis(e.target.value)}
                                         style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '11px 14px', borderRadius: 10, resize: 'vertical', minHeight: 80, fontFamily: 'Outfit', fontSize: '0.95rem', outline: 'none' }} />
