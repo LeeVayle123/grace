@@ -550,6 +550,15 @@ def passer_commande():
 @app.route('/api/avis', methods=['POST'])
 def add_avis():
     data = request.json
+    
+    # Handle removal of a like dynamically
+    if data.get('action') == 'unlike':
+        avis_like = Avis.query.filter_by(id_produit=data.get('id_produit'), is_liked=True).first()
+        if avis_like:
+            db.session.delete(avis_like)
+            db.session.commit()
+        return jsonify({"success": True}), 200
+
     nouvel_avis = Avis(
         id_produit=data.get('id_produit'),
         auteur=data.get('auteur', 'Anonyme') or 'Anonyme',

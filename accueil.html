@@ -940,19 +940,27 @@
             }, [p.id]);
 
             const handleLike = () => {
-                if (isLiked) return; // Un seul like possible
-                setIsLiked(true);
-                setLocalLikes(prev => prev + 1);
+                const newValue = !isLiked;
+                setIsLiked(newValue);
+                setLocalLikes(prev => newValue ? prev + 1 : prev - 1);
 
-                const likedItems = JSON.parse(localStorage.getItem('likedProducts') || '[]');
-                likedItems.push(p.id);
+                let likedItems = JSON.parse(localStorage.getItem('likedProducts') || '[]');
+                if (newValue) {
+                    likedItems.push(p.id);
+                    fetch('/api/avis', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id_produit: p.id, is_liked: true, commentaire: "" })
+                    });
+                } else {
+                    likedItems = likedItems.filter(id => id !== p.id);
+                    fetch('/api/avis', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id_produit: p.id, action: 'unlike' })
+                    });
+                }
                 localStorage.setItem('likedProducts', JSON.stringify(likedItems));
-
-                fetch('/api/avis', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id_produit: p.id, is_liked: true, commentaire: "" })
-                });
             };
 
             const submitAvis = (e) => {
@@ -1100,21 +1108,27 @@
 
             const handleLike = (e) => {
                 e.stopPropagation();
-                if (isLiked) return; // Un seul like possible
+                const newValue = !isLiked;
+                setIsLiked(newValue);
+                setLocalLikes(prev => newValue ? prev + 1 : prev - 1);
 
-                setIsLiked(true);
-                setLocalLikes(prev => prev + 1);
-
-                // Sauvegarde locale
-                const likedItems = JSON.parse(localStorage.getItem('likedProducts') || '[]');
-                likedItems.push(p.id);
+                let likedItems = JSON.parse(localStorage.getItem('likedProducts') || '[]');
+                if (newValue) {
+                    likedItems.push(p.id);
+                    fetch('/api/avis', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id_produit: p.id, is_liked: true, commentaire: "" })
+                    });
+                } else {
+                    likedItems = likedItems.filter(id => id !== p.id);
+                    fetch('/api/avis', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id_produit: p.id, action: 'unlike' })
+                    });
+                }
                 localStorage.setItem('likedProducts', JSON.stringify(likedItems));
-
-                fetch('/api/avis', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id_produit: p.id, is_liked: true, commentaire: "" })
-                });
             };
 
             const handleShare = (e) => {
