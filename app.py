@@ -393,10 +393,29 @@ def edit_produit(id):
 
 @app.route('/produits/<int:id>/delete', methods=['POST'])
 def delete_produit(id):
-    produit = Produit.query.get_or_404(id)
-    db.session.delete(produit)
-    db.session.commit()
-    return jsonify({"success": True})
+    try:
+        produit = Produit.query.get_or_404(id)
+        
+        # 1. Supprimer les avis associés
+        Avis.query.filter_by(id_produit=produit.id).delete()
+        
+        # 2. Supprimer l'image de Supabase Storage si elle existe
+        if produit.image_filename and "supabase.co" in produit.image_filename and supabase:
+            try:
+                # Extraire le nom du fichier de l'URL
+                # Format URL: https://[...]/storage/v1/object/public/[BUCKET]/[FILENAME]
+                filename = produit.image_filename.split('/')[-1]
+                supabase.storage.from_(BUCKET_NAME).remove([filename])
+            except Exception as se:
+                print(f"Erreur Supabase Storage Delete : {se}")
+        
+        # 3. Supprimer le produit de la DB
+        db.session.delete(produit)
+        db.session.commit()
+        return jsonify({"success": True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/clients', methods=['GET'])
 def liste_clients():
