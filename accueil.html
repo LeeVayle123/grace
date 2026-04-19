@@ -545,6 +545,14 @@
 
             .logo {
                 font-size: 1.3rem;
+                width: 100%;
+                justify-content: center;
+                order: -1; /* Place le logo tout en haut sur mobile */
+                margin-bottom: 5px;
+            }
+
+            .header-top-row {
+                flex-wrap: wrap; /* Permet le retour à la ligne après le logo */
             }
 
             .logo-img {
@@ -788,8 +796,8 @@
                                     <div style={{display: 'flex', justifyContent: 'center', gap: 10, marginBottom: 15, flexWrap: 'wrap'}}>
                                         <div style={{background: '#e03027', color:'white', fontWeight:'bold', padding: '5px 10px', borderRadius:8, fontSize:'0.75rem'}}>Airtel</div>
                                         <div style={{background: '#ff7900', color:'white', fontWeight:'bold', padding: '5px 10px', borderRadius:8, fontSize:'0.75rem'}}>Orange</div>
-                                        <div style={{background: '#4CAF50', color:'white', fontWeight:'bold', padding: '5px 10px', borderRadius:8, fontSize:'0.75rem'}}>M-Pesa</div>
-                                        <div style={{background: '#e50000', color:'white', fontWeight:'bold', padding: '5px 10px', borderRadius:8, fontSize:'0.75rem'}}>Afrimoney</div>
+                                        <div style={{background: '#0095FF', color:'white', fontWeight:'bold', padding: '5px 10px', borderRadius:8, fontSize:'0.75rem'}}>M-Pesa</div>
+                                        <div style={{background: '#7e22ce', color:'white', fontWeight:'bold', padding: '5px 10px', borderRadius:8, fontSize:'0.75rem'}}>Africell</div>
                                     </div>
                                     
                                     <button
@@ -1110,9 +1118,17 @@
             const handleShare = (e) => {
                 e.stopPropagation();
                 const url = window.location.href;
-                navigator.clipboard.writeText(url).then(() => {
-                    alert("Lien de la boutique copié !");
-                });
+                if (navigator.share) {
+                    navigator.share({
+                        title: p.nom,
+                        text: "Découvrez " + p.nom + " sur LA GRACE SEEMIN",
+                        url: url
+                    }).catch(err => console.log('Erreur de partage', err));
+                } else {
+                    navigator.clipboard.writeText(url).then(() => {
+                        alert("Lien de la boutique copié !");
+                    });
+                }
             };
 
             return (
@@ -1343,10 +1359,10 @@
                                                     exit={{ height: 0, opacity: 0 }}
                                                     style={{ position: 'absolute', top: 50, left: 0, width: 250, zIndex: 200 }}
                                                 >
-                                                    <li className={"item-categorie " + (filtre === null ? "actif" : "")} onClick={() => {setFiltre(null); setIsMenuOpen(false);}}><i className="fas fa-layer-group" style={{marginRight: 10, width: 20}}></i> Toutes</li>
+                                                    <li className={"item-categorie " + (filtre === null ? "actif" : "")} onClick={() => {setFiltre(null); setIsMenuOpen(false);}}>Toutes</li>
                                                     {categories.map((c) => (
                                                         <li key={c} className={"item-categorie " + (filtre === c ? "actif" : "")} onClick={() => {setFiltre(c); setIsMenuOpen(false);}}>
-                                                            <i className="fas fa-tag" style={{marginRight: 10, width: 20}}></i> {c}
+                                                            {c}
                                                         </li>
                                                     ))}
                                                 </motion.ul>
