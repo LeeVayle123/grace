@@ -590,7 +590,7 @@
             .liste-categories {
                 flex-direction: column;
                 width: 100%;
-                background: rgba(0,0,0,0.85); /* Fond transparent mais assombri */
+                background: rgba(10,10,10,0.96); /* Presque opaque selon la demande */
                 backdrop-filter: blur(10px);
                 border: none;
                 padding: 0;
@@ -620,8 +620,11 @@
             }
 
             .visuel-produit {
-                height: 200px; /* Réduit un peu l'affichage pour voir plus de choses */
+                height: 350px; /* Grand espace pour voir toute l'image */
                 padding: 12px;
+                background-size: contain !important; /* Force l'affichage total de l'image sans rien couper */
+                background-color: #050505; /* Fond très sombre pour combler le vide */
+                border-radius: 16px;
             }
 
             .etiquette-prix {
