@@ -563,54 +563,46 @@
 
             /* MENU ROULANT HAMBURGER (Demande Utilisateur) */
             .menu-principal {
-                margin-bottom: 20px;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                padding: 0;
+                display: none; /* On cache le conteneur principal sur mobile puisqu'il part dans le header */
             }
 
             .btn-hamburger {
                 display: flex !important;
-                background: #171717;
+                background: transparent;
                 color: white;
-                border: 1px solid rgba(255,255,255,0.2);
-                padding: 12px 24px;
-                border-radius: 99px;
-                font-family: 'Outfit';
-                font-weight: 700;
-                font-size: 1.1rem;
+                border: none;
+                padding: 10px;
+                font-size: 1.8rem;
                 cursor: pointer;
                 align-items: center;
-                gap: 10px;
-                margin-bottom: 10px;
-                width: 100%;
-                justify-content: center;
+                justify-content: flex-start;
+                margin: 0;
             }
 
-            .menu-principal .liste-categories {
+            .liste-categories {
                 flex-direction: column;
                 width: 100%;
-                background: #111;
-                border-radius: 20px;
-                border: 1px solid rgba(255,255,255,0.1);
-                overflow: hidden;
+                background: transparent;
+                border: none;
                 padding: 0;
                 margin: 0;
             }
 
-            .menu-principal .item-categorie {
+            .item-categorie {
                 width: 100%;
-                text-align: center;
+                text-align: left; /* Alignement à gauche */
                 border-radius: 0;
-                padding: 14px;
-                border-bottom: 1px solid rgba(255,255,255,0.05);
-                font-size: 1rem;
+                padding: 12px 10px;
+                border-bottom: 1px solid rgba(255,255,255,0.05); /* Ligne très fine pour séparer */
+                font-size: 1.1rem;
+                font-weight: 600;
+                color: white;
+                text-shadow: 0 2px 4px rgba(0,0,0,0.8); /* Pour que le texte soit lisible sans fond */
             }
-            /* GRILLE 2 COLONNES */
+            /* GRILLE 1 COLONNE (Demande Utilisateur) */
             .grille-produits {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 12px;
+                grid-template-columns: 1fr;
+                gap: 20px;
             }
 
             .carte-produit {
@@ -619,8 +611,8 @@
             }
 
             .visuel-produit {
-                height: 160px;
-                padding: 8px;
+                height: 250px; /* Grande image pour scroller */
+                padding: 12px;
             }
 
             .etiquette-prix {
@@ -633,17 +625,17 @@
             }
 
             .rating-box {
-                display: none; /* On cache les étoiles sur mobile pour gagner de la place */
+                display: flex; /* On garde visible pour la 1 colonne */
             }
 
             .btn-achat {
-                padding: 10px;
-                font-size: 0.85rem;
+                padding: 14px;
+                font-size: 1rem;
             }
 
             .btn-details {
-                width: 42px;
-                padding: 10px;
+                width: 54px;
+                padding: 14px;
             }
 
             .titre-section {
@@ -830,6 +822,7 @@
             const [info, setInfo] = useState({ nom: '', postnom: '', telephone: '', adresse: '' });
             const [loading, setLoading] = useState(false);
             const total = items.reduce((acc, p) => acc + (p.prix * (p.quantite || 1)), 0);
+            const isMobile = window.innerWidth <= 600;
 
             const handleSubmit = async (e) => {
                 e.preventDefault();
@@ -857,7 +850,7 @@
                 <motion.div
                     initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                     onClick={onClose}
-                    style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', zIndex: 4000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+                    style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', zIndex: 4000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? 15 : 20 }}
                 >
                     {/* Modal Content */}
                     <motion.div
@@ -866,11 +859,11 @@
                         exit={{ opacity: 0, y: 50, scale: 0.95 }}
                         transition={{ duration: 0.6, ease: "easeOut" }}
                         onClick={e => e.stopPropagation()}
-                        style={{ background: '#1c1c1c', borderRadius: 24, width: '100%', maxWidth: 500, padding: 30, border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 30px 60px rgba(0,0,0,0.8)', position: 'relative' }}
+                        style={{ background: '#1c1c1c', borderRadius: 24, width: '100%', maxWidth: 500, padding: isMobile ? 20 : 30, border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 30px 60px rgba(0,0,0,0.8)', position: 'relative', overflowY: 'auto', maxHeight: '90vh' }}
                     >
-                        <h2 style={{ margin: '0 0 20px 0', color: 'white', textAlign: 'center' }}>Détails de Livraison</h2>
+                        <h2 style={{ margin: '0 0 20px 0', color: 'white', textAlign: 'center', fontSize: isMobile ? '1.4rem' : '1.5rem' }}>Détails de Livraison</h2>
                         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 15 }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 15 }}>
                                 <input placeholder="Nom" required value={info.nom} onChange={e => setInfo({ ...info, nom: e.target.value })}
                                     style={{ background: '#262626', border: '1px solid #333', color: 'white', padding: 12, borderRadius: 10 }} />
                                 <input placeholder="Postnom" required value={info.postnom} onChange={e => setInfo({ ...info, postnom: e.target.value })}
@@ -1308,7 +1301,33 @@
 
                     <header className="en-tete">
                         <div className="header-top-row">
-                            <div style={{ flex: 1 }}></div>
+                            <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+                                {isMobile && (
+                                    <div style={{ position: 'relative' }}>
+                                        <button className="btn-hamburger" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+                                            <i className="fas fa-bars"></i>
+                                        </button>
+                                        <AnimatePresence>
+                                            {isMenuOpen && (
+                                                <motion.ul 
+                                                    className="liste-categories"
+                                                    initial={{ height: 0, opacity: 0 }}
+                                                    animate={{ height: 'auto', opacity: 1 }}
+                                                    exit={{ height: 0, opacity: 0 }}
+                                                    style={{ position: 'absolute', top: 50, left: 0, width: 250, zIndex: 200 }}
+                                                >
+                                                    <li className={"item-categorie " + (filtre === null ? "actif" : "")} onClick={() => {setFiltre(null); setIsMenuOpen(false);}}><i className="fas fa-layer-group" style={{marginRight: 10, width: 20}}></i> Toutes</li>
+                                                    {categories.map((c) => (
+                                                        <li key={c} className={"item-categorie " + (filtre === c ? "actif" : "")} onClick={() => {setFiltre(c); setIsMenuOpen(false);}}>
+                                                            <i className="fas fa-tag" style={{marginRight: 10, width: 20}}></i> {c}
+                                                        </li>
+                                                    ))}
+                                                </motion.ul>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
+                                )}
+                            </div>
                             
                             <motion.a href="#" className="logo" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 2.5, ease: [0.22, 1, 0.36, 1] }}>
                                 <img src="/static/log.jpeg" alt="Logo" className="logo-img" onError={(e) => e.target.style.display = 'none'} />
@@ -1342,29 +1361,16 @@
                     </header>
 
                     <main className="contenu-principal">
-                        <nav className="menu-principal">
-                            {isMobile && (
-                                <button className="btn-hamburger" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-                                    <i className="fas fa-bars"></i>
-                                    {filtre ? filtre : "La totale"}
-                                </button>
-                            )}
-                            <AnimatePresence>
-                                {(!isMobile || isMenuOpen) && (
-                                    <motion.ul 
-                                        className="liste-categories"
-                                        initial={isMobile ? { height: 0, opacity: 0 } : false}
-                                        animate={isMobile ? { height: 'auto', opacity: 1 } : false}
-                                        exit={isMobile ? { height: 0, opacity: 0 } : false}
-                                    >
-                                        <li className={"item-categorie " + (filtre === null ? "actif" : "")} onClick={() => {setFiltre(null); setIsMenuOpen(false);}}>La totale</li>
-                                        {categories.map((c) => (
-                                            <li key={c} className={"item-categorie " + (filtre === c ? "actif" : "")} onClick={() => {setFiltre(c); setIsMenuOpen(false);}}>{c}</li>
-                                        ))}
-                                    </motion.ul>
-                                )}
-                            </AnimatePresence>
-                        </nav>
+                        {!isMobile && (
+                            <nav className="menu-principal">
+                                <ul>
+                                    <li className={"item-categorie " + (filtre === null ? "actif" : "")} onClick={() => setFiltre(null)}>La totale</li>
+                                    {categories.map((c) => (
+                                        <li key={c} className={"item-categorie " + (filtre === c ? "actif" : "")} onClick={() => setFiltre(c)}>{c}</li>
+                                    ))}
+                                </ul>
+                            </nav>
+                        )}
 
                         <Banniere onDecouvrir={() => { window.scrollTo({ top: 600, behavior: 'smooth' }); }} />
 
