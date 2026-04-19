@@ -15,7 +15,7 @@
     <style>
         :root {
             --fond: #0a0a0a;
-            --carte: rgba(30, 30, 30, 0.75); /* Pas trop transparent, laisse percevoir le fond */
+            --carte: transparent; /* Complètement transparent tel que demandé */
             --texte: #f3f4f6;
             --accent: #f97316;
             --accent-hover: #ea580c;
@@ -338,7 +338,6 @@
         /* --- Cartes Produit --- */
         .carte-produit {
             background: var(--carte);
-            backdrop-filter: blur(20px);
             border-radius: 28px;
             padding: 16px;
             border: 1.5px solid rgba(255, 255, 255, 0.15); /* Encadrement renforcé */
