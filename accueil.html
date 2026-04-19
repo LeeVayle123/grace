@@ -561,39 +561,52 @@
                 padding: 20px 4%;
             }
 
-            /* MENU ROULANT (Demande Utilisateur) */
+            /* MENU ROULANT HAMBURGER (Demande Utilisateur) */
             .menu-principal {
-                margin-bottom: 25px;
-                justify-content: flex-start;
+                margin-bottom: 20px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
                 padding: 0;
             }
 
-            .menu-principal ul {
-                flex-wrap: nowrap;
-                overflow-x: auto;
-                justify-content: flex-start;
-                padding: 8px 4px;
-                width: 100vw;
-                margin-left: -4%; /* Compense le padding du contenu-principal */
-                padding-left: 4%;
-                padding-right: 4%;
+            .btn-hamburger {
+                display: flex !important;
+                background: #171717;
+                color: white;
+                border: 1px solid rgba(255,255,255,0.2);
+                padding: 12px 24px;
+                border-radius: 99px;
+                font-family: 'Outfit';
+                font-weight: 700;
+                font-size: 1.1rem;
+                cursor: pointer;
+                align-items: center;
+                gap: 10px;
+                margin-bottom: 10px;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .menu-principal .liste-categories {
+                flex-direction: column;
+                width: 100%;
+                background: #111;
+                border-radius: 20px;
+                border: 1px solid rgba(255,255,255,0.1);
+                overflow: hidden;
+                padding: 0;
+                margin: 0;
+            }
+
+            .menu-principal .item-categorie {
+                width: 100%;
+                text-align: center;
                 border-radius: 0;
-                border-left: none;
-                border-right: none;
-                border-bottom: 1.5px solid rgba(255, 255, 255, 0.1);
-                -webkit-overflow-scrolling: touch;
+                padding: 14px;
+                border-bottom: 1px solid rgba(255,255,255,0.05);
+                font-size: 1rem;
             }
-
-            .menu-principal ul::-webkit-scrollbar {
-                display: none; /* Cache la barre pour un look épuré */
-            }
-
-            .item-categorie {
-                padding: 8px 18px;
-                white-space: nowrap; /* Empêche le retour à la ligne du texte */
-                font-size: 0.9rem;
-            }
-
             /* GRILLE 2 COLONNES */
             .grille-produits {
                 grid-template-columns: repeat(2, 1fr);
@@ -672,9 +685,9 @@
             }
 
             .carte-contact .icone-contact {
-                width: 60px !important;
-                height: 60px !important;
-                font-size: 1.8rem !important;
+                width: 40px !important;
+                height: 40px !important;
+                font-size: 1.2rem !important;
                 margin: 0 !important;
             }
 
@@ -1242,8 +1255,10 @@
             // Nouveau Système de Cartes & Toasts
             const [panier, setPanier] = useState([]);
             const [isCartOpen, setIsCartOpen] = useState(false);
+            const [isMenuOpen, setIsMenuOpen] = useState(false);
             const [toasts, setToasts] = useState([]);
             const nbItems = panier.reduce((acc, obj) => acc + obj.quantite, 0);
+            const isMobile = window.innerWidth <= 600;
 
             const produitsFiltres = useMemo(() => {
                 return produits.filter(p => {
@@ -1328,12 +1343,27 @@
 
                     <main className="contenu-principal">
                         <nav className="menu-principal">
-                            <ul>
-                                <li className={"item-categorie " + (filtre === null ? "actif" : "")} onClick={() => setFiltre(null)}>La totale</li>
-                                {categories.map((c) => (
-                                    <li key={c} className={"item-categorie " + (filtre === c ? "actif" : "")} onClick={() => setFiltre(c)}>{c}</li>
-                                ))}
-                            </ul>
+                            {isMobile && (
+                                <button className="btn-hamburger" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+                                    <i className="fas fa-bars"></i>
+                                    {filtre ? filtre : "La totale"}
+                                </button>
+                            )}
+                            <AnimatePresence>
+                                {(!isMobile || isMenuOpen) && (
+                                    <motion.ul 
+                                        className="liste-categories"
+                                        initial={isMobile ? { height: 0, opacity: 0 } : false}
+                                        animate={isMobile ? { height: 'auto', opacity: 1 } : false}
+                                        exit={isMobile ? { height: 0, opacity: 0 } : false}
+                                    >
+                                        <li className={"item-categorie " + (filtre === null ? "actif" : "")} onClick={() => {setFiltre(null); setIsMenuOpen(false);}}>La totale</li>
+                                        {categories.map((c) => (
+                                            <li key={c} className={"item-categorie " + (filtre === c ? "actif" : "")} onClick={() => {setFiltre(c); setIsMenuOpen(false);}}>{c}</li>
+                                        ))}
+                                    </motion.ul>
+                                )}
+                            </AnimatePresence>
                         </nav>
 
                         <Banniere onDecouvrir={() => { window.scrollTo({ top: 600, behavior: 'smooth' }); }} />
