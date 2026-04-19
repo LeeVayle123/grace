@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration — Commandes</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            /* Palette Noir & Orange correspondant au site principal */
+            --fond: #0a0a0a;
+            --carte: #171717;
+            --texte: #f3f4f6;
+            --accent: #f97316;
+            --accent-bg: rgba(249, 115, 22, 0.15);
+            --muted: #a1a1aa;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--fond);
+            margin: 0;
+            padding: 60px 5%;
+            color: var(--texte);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .btn-retour {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--muted);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: color 0.3s;
+        }
+
+        .btn-retour:hover {
+            color: var(--accent);
+        }
+
+        h1 {
+            color: var(--texte);
+            font-weight: 800;
+            font-size: 2.8rem;
+            margin: 0 0 40px 0;
+            letter-spacing: -0.5px;
+        }
+
+        h1 span.accent {
+            color: var(--accent);
+        }
+
+        .table-container {
+            background: var(--carte);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 22px 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 1.05rem;
+        }
+
+        th {
+            background-color: rgba(0, 0, 0, 0.4);
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1.5px;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background-color: #262626; /* Feedback visuel minimaliste au survol */
+        }
+
+        .id-col {
+            font-weight: 700;
+            color: white;
+            font-family: monospace;
+            font-size: 1.1rem;
+        }
+
+        .date-col {
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        /* Styles de statuts statiques mais magnifiques */
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 100px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-attente {
+            background-color: rgba(245, 158, 11, 0.15); /* Jaune/Orange léger */
+            color: #fcd34d;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .status-terminee {
+            background-color: rgba(34, 197, 94, 0.15); /* Vert léger */
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .status-annulee {
+            background-color: rgba(239, 68, 68, 0.15); /* Rouge léger */
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .select-statut {
+            appearance: none;
+            background: rgba(0,0,0,0.3);
+            color: var(--texte);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 8px 30px 8px 15px;
+            border-radius: 99px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .select-statut:hover {
+            border-color: var(--accent);
+        }
+
+        .select-statut:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-bg);
+        }
+
+        .select-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .select-wrapper i {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            pointer-events: none;
+            font-size: 0.8rem;
+        }
+
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--muted);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            color: white;
+            margin: 0 0 10px 0;
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-top">
+        <a href="/admin" class="btn-retour">
+            <i class="fas fa-arrow-left"></i> Tableau de bord Admin
+        </a>
+    </div>
+
+    <h1>Gestion des <span class="accent">Commandes</span></h1>
+    
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>N° Cmd</th>
+                    <th>Client & Contact</th>
+                    <th>Détails Livraison</th>
+                    <th>Rendez-vous / Livraison</th>
+                    <th>Articles</th>
+                    <th>Statut / Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for commande in commandes %}
+                <tr>
+                    <td class="id-col">#{{ '%04d' % commande.id }}</td>
+                    <td>
+                        <div style="font-weight: 700; color: white;">{{ commande.client.nom }} {{ commande.client.postnom }}</div>
+                        <div style="font-size: 0.85rem; color: var(--accent); margin-top: 4px;">
+                            <i class="fas fa-phone-alt"></i> {{ commande.client.telephone or 'N/A' }}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="font-size: 0.9rem; color: #eee; max-width: 250px; line-height: 1.4;">
+                            <i class="fas fa-map-marker-alt" style="color: var(--accent); margin-right: 5px;"></i>
+                            {{ commande.client.adresse or 'Préciser lors du contact' }}
+                        </div>
+                        <div class="date-col" style="margin-top: 6px;">
+                            <i class="far fa-clock"></i> {{ commande.date.strftime('%d/%m/%Y à %H:%M') if commande.date else 'Non définie' }}
+                        </div>
+                    </td>
+                    <td>
+                        <textarea class="select-statut" placeholder="Lieu/heure de rendez-vous..." 
+                            style="width: 100%; min-height: 60px; border-radius: 12px; padding: 10px; font-size: 0.85rem;"
+                            onchange="majRendezVous('{{ commande.id }}', this.value)">{{ commande.rdv_adresse or '' }}</textarea>
+                    </td>
+                    <td>
+                        <div style="display: flex; flexDirection: column; gap: 4px;">
+                            {% for d in commande.details %}
+                            <div style="font-size: 0.85rem; background: rgba(255,255,255,0.03); padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; gap: 10px;">
+                                {% if d.produit %}
+                                    {% if d.produit.image_filename %}
+                                        <img src="/static/uploads/{{ d.produit.image_filename }}" alt="" style="width: 35px; height: 35px; object-fit: cover; border-radius: 6px;">
+                                    {% elif d.produit.video_filename %}
+                                        <video src="/static/uploads/{{ d.produit.video_filename }}" muted loop autoplay playsinline style="width: 35px; height: 35px; object-fit: cover; border-radius: 6px;"></video>
+                                    {% endif %}
+                                {% endif %}
+                                <span><span style="color: var(--accent); font-weight: 700;">{{ d.quantite }}x</span> <span style="color: #ddd;">{{ d.produit.nom if d.produit else 'Produit inconnu' }}</span></span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <div class="select-wrapper">
+                                <select class="select-statut" data-id="{{ commande.id }}" onchange="changerStatut(this)" style="min-width: 140px;">
+                                    <option value="en attente" {% if 'attente' in (commande.statut or '')|lower %}selected{% endif %}>En attente</option>
+                                    <option value="terminée" {% if 'termin' in (commande.statut or '')|lower %}selected{% endif %}>Terminée</option>
+                                    <option value="annulée" {% if 'annul' in (commande.statut or '')|lower %}selected{% endif %}>Annulée</option>
+                                </select>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <div style="flex: 1; background: white; padding: 12px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.4);">
+                                    {% set wa_url = "https://wa.me/" ~ ((commande.client.telephone|replace(' ', '')|replace('+', '')) if (commande.client.telephone and (commande.client.telephone.startswith('+') or commande.client.telephone|length > 10)) else ('243' ~ commande.client.telephone|replace(' ', '')) if commande.client.telephone else '') ~ "?text=" ~ (('Bonjour ' ~ commande.client.nom ~ ', je vous contacte concernant votre commande n°' ~ '%04d' % commande.id ~ ' sur LA GRACE SEEMIN.')|urlencode) %}
+                                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ wa_url|urlencode }}&ecc=M" 
+                                         alt="Scan QR" style="width: 120px; height: 120px; display: block; image-rendering: pixelated; border: 1px solid #eee;">
+                                    <span style="font-size: 0.65rem; color: #111; font-weight: 900; text-transform: uppercase;">Scanner WhatsApp</span>
+                                </div>
+                                <button onclick="supprimerCommande('{{ commande.id }}')" class="status" style="background:rgba(239,68,68,0.1); color:#fca5a5; border:1px solid rgba(239,68,68,0.3); height: 160px; width: 45px; cursor:pointer; display: flex; align-items: center; justify-content: center; border-radius: 12px; transition: background 0.3s;" onmouseover="this.style.background='rgba(239,68,68,0.2)'" onmouseout="this.style.background='rgba(239,68,68,0.1)'">
+                                    <i class="fas fa-trash" style="font-size: 1.2rem;"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5">
+                        <div class="empty-state">
+                            <i class="fas fa-box-open"></i>
+                            <h3>Aucune commande</h3>
+                            <p>La base de données des commandes est actuellement vide.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        async function changerStatut(selectElement) {
+            const idCommande = selectElement.getAttribute('data-id');
+            const nouveauStatut = selectElement.value;
+            
+            // Un petit feedback couleur si on veut être fancy
+            selectElement.style.opacity = '0.5';
+
+            try {
+                const response = await fetch(`/admin/commandes/${idCommande}/status`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ statut: nouveauStatut })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Retour visuel en cas de succès (vert éphémère puis retour à la normale)
+                    selectElement.style.opacity = '1';
+                    selectElement.style.backgroundColor = 'rgba(34, 197, 94, 0.15)';
+                    selectElement.style.borderColor = '#22c55e';
+                    selectElement.style.color = '#86efac';
+                    
+                    setTimeout(() => {
+                        selectElement.style.backgroundColor = 'rgba(0,0,0,0.3)';
+                        selectElement.style.borderColor = 'rgba(255,255,255,0.1)';
+                        selectElement.style.color = 'var(--texte)';
+                    }, 1000);
+
+                } else {
+                    alert("Erreur lors de la mise à jour.");
+                    selectElement.style.opacity = '1';
+                }
+            } catch (error) {
+                console.error("Erreur de connexion:", error);
+                alert("Erreur réseau ou critique.");
+                selectElement.style.opacity = '1';
+            }
+        }
+
+        async function majRendezVous(id, valeur) {
+            try {
+                const r = await fetch(`/admin/commandes/${id}/rdv`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ rdv_adresse: valeur })
+                });
+                if (!r.ok) alert("Erreur lors de la mise à jour du RDV");
+            } catch(e) { console.error(e); }
+        }
+
+        async function supprimerCommande(id) {
+            if (!confirm("Supprimer définitivement cette commande ?")) return;
+            try {
+                const r = await fetch(`/admin/commandes/${id}/delete`, { method: 'POST' });
+                if (r.ok) location.reload();
+                else alert("Erreur lors de la suppression");
+            } catch(e) { console.error(e); }
+        }
+    </script>
+</body>
+</html>

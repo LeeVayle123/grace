@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+instance/
+static/uploads/*
+!static/uploads/.gitkeep
+ecommerce.db
+.env
+venv/
+.pytest_cache/
+.vscode/

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration — Avis</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --fond: #0a0a0a;
+            --carte: #171717;
+            --texte: #f3f4f6;
+            --accent: #f97316;
+            --muted: #a1a1aa;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--fond);
+            margin: 0;
+            padding: 60px 5%;
+            color: var(--texte);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .btn-retour {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--muted);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: color 0.3s;
+        }
+
+        .btn-retour:hover { color: var(--accent); }
+
+        h1 { font-size: 2.8rem; margin: 0 0 40px 0; font-weight: 800; }
+        h1 span.accent { color: var(--accent); }
+
+        .table-container {
+            background: var(--carte);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+            margin-top: 30px;
+        }
+
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th, td { padding: 22px 30px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        th { background: rgba(0, 0, 0, 0.4); color: var(--muted); text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1.5px; }
+
+        .like-badge {
+            background: rgba(244, 63, 94, 0.1);
+            color: #f43f5e;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-top">
+        <a href="/admin" class="btn-retour">
+            <i class="fas fa-arrow-left"></i> Tableau de bord Admin
+        </a>
+    </div>
+
+    <h1>Gestion des <span class="accent">Avis & Likes</span></h1>
+
+    <div class="table-container">
+        <table>
+            <tr>
+                <th>Visuel</th>
+                <th>Produit</th>
+                <th>Auteur</th>
+                <th>Action Client</th>
+                <th>Commentaire</th>
+                <th>Date</th>
+                <th>Action</th>
+            </tr>
+            {% for a in avis_list %}
+            <tr>
+                <td style="width: 80px;">
+                    {% if a.produit %}
+                        {% if a.produit.image_filename %}
+                            <img src="/static/uploads/{{ a.produit.image_filename }}" alt="" style="width: 60px; height: 60px; object-fit: cover; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                        {% elif a.produit.video_filename %}
+                            <video src="/static/uploads/{{ a.produit.video_filename }}" muted loop autoplay playsinline style="width: 60px; height: 60px; object-fit: cover; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);"></video>
+                        {% else %}
+                            <div style="width: 60px; height: 60px; background: #262626; border-radius: 12px; display: flex; alignItems: center; justifyContent: center;"><i class="fas fa-image" style="color: #444;"></i></div>
+                        {% endif %}
+                    {% else %}
+                        <div style="width: 60px; height: 60px; background: #262626; border-radius: 12px; display: flex; alignItems: center; justifyContent: center;"><i class="fas fa-question" style="color: #444;"></i></div>
+                    {% endif %}
+                </td>
+                <td style="font-weight: 600; color: var(--accent);">
+                    {{ a.produit.nom if a.produit else 'Ref-' ~ a.id_produit }}
+                </td>
+                <td>{{ a.auteur or "Anonyme" }}</td>
+                <td>
+                    {% if a.is_liked %}
+                        <span class="like-badge"><i class="fas fa-heart"></i> Liké</span>
+                    {% elif a.commentaire %}
+                        <span style="color: var(--muted);"><i class="far fa-comment"></i> Commentaire</span>
+                    {% endif %}
+                </td>
+                <td style="max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #d1d5db;">
+                    {{ a.commentaire or "-" }}
+                </td>
+                <td style="font-size: 0.9rem; color: var(--muted);">{{ a.date.strftime('%d/%m/%Y %H:%M') if a.date else "Inconnue" }}</td>
+                <td>
+                    <button onclick="supprimerAvis('{{ a.id }}')" style="background: none; border: none; color: #f87171; cursor: pointer; font-size: 1.1rem; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 40px; color: var(--muted);">Aucune interaction client pour le moment.</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <script>
+        async function supprimerAvis(id) {
+            if (!confirm("Supprimer définitivement cet avis/like ?")) return;
+            try {
+                const r = await fetch(`/api/avis/${id}/delete`, { method: 'POST' });
+                if (r.ok) location.reload();
+                else alert("Erreur lors de la suppression");
+            } catch(e) { console.error(e); }
+        }
+    </script>
+</body>
+</html>

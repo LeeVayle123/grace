@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suivre ma Commande | LA GRACE SEEMIN</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --fond: #0a0a0a;
+            --carte: #171717;
+            --texte: #f3f4f6;
+            --accent: #f97316;
+            --muted: #a1a1aa;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--fond);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: var(--texte);
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: var(--carte);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 30px;
+            color: var(--accent);
+        }
+
+        h2 { font-size: 1.8rem; margin-bottom: 10px; }
+        p.subtitle { color: var(--muted); margin-bottom: 30px; font-size: 0.95rem; }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            color: white;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+            box-sizing: border-box;
+        }
+
+        input:focus { border-color: var(--accent); }
+
+        .btn-check {
+            width: 100%;
+            padding: 16px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+
+        .btn-check:hover { opacity: 0.9; }
+        .btn-check:active { transform: scale(0.98); }
+
+        .result-card {
+            margin-top: 40px;
+            padding: 25px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.05);
+            text-align: left;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 99px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .status-attente { background: rgba(245, 158, 11, 0.1); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.2); }
+        .status-terminee { background: rgba(34, 197, 94, 0.1); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.2); }
+        .status-annulee { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); }
+
+        .error { color: #f87171; background: rgba(239, 68, 68, 0.1); padding: 10px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem; }
+    
+        .btn-back {
+            display: block;
+            margin-top: 30px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">LA GRACE SEEMIN</div>
+        <h2>Suivi de Commande</h2>
+        <p class="subtitle">Entrez votre numéro de commande ou votre numéro de téléphone pour vérifier le statut.</p>
+
+        {% if erreur %}
+            <div class="error">{{ erreur }}</div>
+        {% endif %}
+
+        <form method="POST">
+            <div class="form-group">
+                <input type="text" name="query" placeholder="N° de commande ou Téléphone" required>
+            </div>
+            <button type="submit" class="btn-check">Vérifier maintenant</button>
+        </form>
+
+        {% if commande %}
+            <div class="result-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                    <div>
+                        <div style="font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px;">Commande</div>
+                        <div style="font-size: 1.3rem; font-weight: 700;">#{{ '%04d' % commande.id }}</div>
+                    </div>
+                    {% set stat = (commande.statut or 'en attente')|lower %}
+                    <div class="status-badge {% if 'attente' in stat %}status-attente{% elif 'termin' in stat %}status-terminee{% else %}status-annulee{% endif %}">
+                        {{ commande.statut }}
+                    </div>
+                </div>
+
+                <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px;">
+                    <div style="font-size: 0.85rem; color: var(--muted);">Articles :</div>
+                    <ul style="margin: 10px 0; padding-left: 15px; font-size: 0.95rem; color: #ddd;">
+                        {% for d in commande.details %}
+                        <li>{{ d.quantite }}x {{ d.produit.nom if d.produit else 'Article' }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                
+                <p style="font-size: 0.8rem; color: var(--muted); margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px;">
+                    Date : {{ commande.date.strftime('%d/%m/%Y') if commande.date else '-' }}
+                </p>
+
+                {% if commande.rdv_adresse %}
+                <div style="margin-top: 20px; padding: 15px; background: rgba(249, 115, 22, 0.1); border: 1px dashed var(--accent); border-radius: 12px;">
+                    <div style="font-size: 0.75rem; color: var(--accent); text-transform: uppercase; font-weight: 800; margin-bottom: 5px;">Rendez-vous pour livraison :</div>
+                    <div style="font-size: 1rem; color: white; line-height: 1.4;">{{ commande.rdv_adresse }}</div>
+                </div>
+                {% endif %}
+
+                <div style="margin-top: 25px;">
+                    <a href="https://wa.me/243000000000?text={{ ('Bonjour, je souhaite des informations concernant ma commande n°' ~ '%04d' % commande.id)|urlencode }}" target="_blank" style="display: flex; align-items: center; justify-content: center; gap: 10px; background: #25d366; color: white; padding: 14px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 0.95rem;">
+                        <i class="fab fa-whatsapp" style="font-size: 1.2rem;"></i> Discuter avec nous (WhatsApp)
+                    </a>
+                    <p style="font-size: 0.75rem; color: var(--muted); text-align: center; margin-top: 10px;">Cliquez pour coordonner la livraison ou poser une question.</p>
+                </div>
+            </div>
+        {% endif %}
+
+        <a href="/" class="btn-back"><i class="fas fa-arrow-left"></i> Retour à la boutique</a>
+    </div>
+</body>
+</html>

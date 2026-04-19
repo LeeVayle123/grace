@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: boutique-grace-seemin
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: SUPABASE_DB_URL_NOTE
+        value: "Utilise le lien direct défini dans app.py"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PYTHON_VERSION
+        value: 3.10.0

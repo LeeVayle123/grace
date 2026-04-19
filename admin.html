@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de Bord - Administration</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --fond: #0a0a0a;
+            --carte: #171717;
+            --texte: #f3f4f6;
+            --accent: #f97316;
+            --accent-hover: #ea580c;
+            --accent-bg: rgba(249, 115, 22, 0.15);
+            --muted: #a1a1aa;
+            --sidebar-width: 280px;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--fond);
+            margin: 0;
+            padding: 0;
+            color: var(--texte);
+            display: flex;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Barre Latérale (En Français Automatiquement) */
+        .barre-laterale {
+            width: var(--sidebar-width);
+            background-color: var(--carte);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100%;
+            z-index: 100;
+        }
+
+        .logo-conteneur {
+            padding: 40px 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--texte);
+            text-decoration: none;
+            letter-spacing: -0.5px;
+        }
+
+        .logo span.accent {
+            color: var(--accent);
+        }
+
+        .menu-navigation {
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            flex: 1;
+        }
+
+        .lien-navigation {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 16px 20px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 16px;
+            transition: all 0.3s;
+        }
+
+        .lien-navigation i {
+            font-size: 1.3rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .lien-navigation:hover {
+            background-color: #262626;
+            color: var(--texte);
+        }
+
+        .lien-navigation.actif {
+            background-color: var(--accent-bg);
+            color: var(--accent);
+            border: 1px solid rgba(249, 115, 22, 0.2);
+        }
+
+        /* Contenu Principal */
+        .contenu-principal {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 50px 60px;
+        }
+
+        .en-tete-page {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 50px;
+        }
+
+        .titre-page {
+            margin: 0;
+            font-size: 2.8rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        .sous-titre {
+            color: var(--muted);
+            margin-top: 10px;
+            font-size: 1.1rem;
+        }
+
+        /* Grille des Statistiques */
+        .grille-statistiques {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .carte-statistique {
+            background: var(--carte);
+            border-radius: 24px;
+            padding: 35px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            transition: transform 0.3s;
+        }
+
+        .carte-statistique:hover {
+            transform: translateY(-8px);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .icone-fond {
+            position: absolute;
+            right: -20px;
+            bottom: -20px;
+            font-size: 8rem;
+            color: rgba(255, 255, 255, 0.02);
+            pointer-events: none;
+        }
+
+        .icone-entete {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            background: var(--accent-bg);
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            margin-bottom: 10px;
+        }
+
+        .titre-carte {
+            color: var(--muted);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .valeur-carte {
+            color: white;
+            font-size: 3rem;
+            font-weight: 800;
+            margin: 0;
+            line-height: 1;
+        }
+
+        /* Section des Actions Rapides */
+        .titre-section {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+        }
+
+        .grille-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .carte-action {
+            background: linear-gradient(135deg, var(--carte), #1a1a1a);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px;
+            text-decoration: none;
+            color: var(--texte);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: all 0.3s;
+        }
+
+        .carte-action:hover {
+            background: var(--accent);
+            box-shadow: 0 10px 25px rgba(249, 115, 22, 0.3);
+            transform: scale(1.02);
+            border-color: var(--accent);
+        }
+
+        .carte-action i {
+            font-size: 2.2rem;
+        }
+
+        .info-action h3 {
+            margin: 0 0 5px 0;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .info-action p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .carte-action:hover .info-action p {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Barre Latérale de Navigation -->
+    <aside class="barre-laterale">
+        <div class="logo-conteneur">
+            <a href="/" class="logo">Boutique<span class="accent">Orange</span> Admin</a>
+        </div>
+        <nav class="menu-navigation">
+            <a href="/admin" class="lien-navigation actif">
+                <i class="fas fa-chart-pie"></i> Vue d'ensemble
+            </a>
+            <a href="/commandes" class="lien-navigation">
+                <i class="fas fa-box-open"></i> Gérer les Commandes
+            </a>
+            <a href="/produits" class="lien-navigation">
+                <i class="fas fa-tags"></i> Gestion des Produits
+            </a>
+            <a href="/clients" class="lien-navigation">
+                <i class="fas fa-users"></i> Base Clients
+            </a>
+            <a href="/admin/avis" class="lien-navigation">
+                <i class="fas fa-comments"></i> Avis & Commentaires
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Contenu Principal du Dashboard -->
+    <main class="contenu-principal">
+        
+        <div class="en-tete-page">
+            <div>
+                <h1 class="titre-page">Tableau de Bord</h1>
+                <p class="sous-titre">Aperçu en temps réel de votre activité commerciale</p>
+            </div>
+            <div>
+                <a href="/" style="background:#262626; color:white; padding:12px 25px; border-radius:12px; text-decoration:none; font-weight:600; border:1px solid rgba(255,255,255,0.1);">
+                    <i class="fas fa-external-link-alt" style="margin-right:8px;"></i> Voir la boutique
+                </a>
+            </div>
+        </div>
+
+        <section class="grille-statistiques">
+            
+            <div class="carte-statistique">
+                <i class="fas fa-shopping-cart icone-fond"></i>
+                <div class="icone-entete">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <h3 class="titre-carte">Total des Commandes</h3>
+                <p class="valeur-carte">{{ stats.total_commandes }}</p>
+            </div>
+
+            <div class="carte-statistique" style="border-bottom: 4px solid #f59e0b;">
+                <i class="fas fa-clock icone-fond"></i>
+                <div class="icone-entete" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <h3 class="titre-carte">Commandes en Attente</h3>
+                <p class="valeur-carte" style="color: #fcd34d;">{{ stats.en_attente }}</p>
+            </div>
+
+            <div class="carte-statistique" style="border-bottom: 4px solid #10b981;">
+                <i class="fas fa-check-circle icone-fond"></i>
+                <div class="icone-entete" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+                    <i class="fas fa-check-double"></i>
+                </div>
+                <h3 class="titre-carte">Commandes Terminées</h3>
+                <p class="valeur-carte" style="color: #6ee7b7;">{{ stats.terminees }}</p>
+            </div>
+
+        </section>
+
+        <section>
+            <h2 class="titre-section">Actions Rapides</h2>
+            <div class="grille-actions">
+                
+                <a href="/commandes" class="carte-action">
+                    <i class="fas fa-tasks"></i>
+                    <div class="info-action">
+                        <h3>Suivi des Commandes</h3>
+                        <p>Valider ou annuler des expéditions</p>
+                    </div>
+                </a>
+
+                <a href="/produits" class="carte-action">
+                    <i class="fas fa-plus-circle"></i>
+                    <div class="info-action">
+                        <h3>Ajouter un Produit</h3>
+                        <p>Élargir votre catalogue</p>
+                    </div>
+                </a>
+
+                <a href="/admin/avis" class="carte-action">
+                    <i class="fas fa-star" style="color: #f59e0b;"></i>
+                    <div class="info-action">
+                        <h3>Avis et Retours</h3>
+                        <p>Voir l'opinion de vos clients</p>
+                    </div>
+                </a>
+
+            </div>
+        </section>
+
+    </main>
+
+</body>
+</html>

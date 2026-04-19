@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration — Produits</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --fond: #0a0a0a;
+            --carte: #171717;
+            --texte: #f3f4f6;
+            --accent: #f97316;
+            --muted: #a1a1aa;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #0a0a0a;
+            margin: 0;
+            padding: 60px 5%;
+            color: #f3f4f6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .btn-retour {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--muted);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: color 0.3s;
+        }
+
+        .btn-retour:hover {
+            color: var(--accent);
+        }
+
+        h1,
+        h2 {
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            margin: 0 0 40px 0;
+        }
+
+        h1 span.accent {
+            color: var(--accent);
+        }
+
+        .form-container {
+            background: var(--carte);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            max-width: 600px;
+        }
+
+        .form-control {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 14px 20px;
+            border-radius: 12px;
+            color: white;
+            font-family: 'Outfit', sans-serif;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1.05rem;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            background: #ea580c;
+        }
+
+        .table-container {
+            background: var(--carte);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th,
+        td {
+            padding: 22px 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        th {
+            background: rgba(0, 0, 0, 0.4);
+            color: var(--muted);
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1.5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header-top">
+        <a href="/admin" class="btn-retour">
+            <i class="fas fa-arrow-left"></i> Tableau de bord Admin
+        </a>
+    </div>
+
+    <h1>Gestion des <span class="accent">Produits</span></h1>
+
+    <div class="form-container">
+        <form method="POST" enctype="multipart/form-data">
+            <input type="text" name="nom" placeholder="Nom du produit" class="form-control" required>
+            <input type="number" step="0.01" name="prix" placeholder="Prix du produit (USD)" class="form-control"
+                required>
+            <input type="number" name="stock" placeholder="Stock disponible" class="form-control" required>
+            <select name="id_categorie" class="form-control" required style="appearance: auto;">
+                <option value="" disabled selected>Choisir une catégorie...</option>
+                {% for c in categories %}
+                <option value="{{ c.id }}">{{ c.nom }}</option>
+                {% endfor %}
+            </select>
+            <textarea name="description" placeholder="Description du produit" class="form-control" rows="3" style="resize: none;"></textarea>
+            <input type="file" name="image" class="form-control" accept="image/*" style="padding-top:10px;">
+            <label style="color:var(--muted);font-size:0.9rem;margin-bottom:5px;display:block;"><i class="fas fa-video" style="color:var(--accent);"></i> Vidéo du produit (optionnel — jouera automatiquement)</label>
+            <input type="file" name="video" class="form-control" accept="video/*" style="padding-top:10px;">
+            <button type="submit" class="btn-primary"><i class="fas fa-plus"></i> Ajouter au catalogue</button>
+        </form>
+    </div>
+
+    <h2>Catalogue Actuel</h2>
+    <div class="table-container">
+        <table>
+            <tr>
+                <th>Visuel</th>
+                <th>ID</th>
+                <th>Nom</th>
+                <th>Prix</th>
+                <th>Stock</th>
+                <th>Catégorie</th>
+                <th>Actions</th>
+            </tr>
+            {% for p in produits %}
+            <tr>
+                <td>
+                    {% if p.video_filename %}
+                    <video src="{{ url_for('static', filename='uploads/' + p.video_filename) }}"
+                        style="width:50px;height:50px;border-radius:8px;object-fit:cover;"
+                        autoplay muted loop playsinline></video>
+                    {% elif p.image_filename %}
+                        {% if p.image_filename.startswith('http') %}
+                        <img src="{{ p.image_filename }}" alt="{{ p.nom }}"
+                            style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover;">
+                        {% else %}
+                        <img src="{{ url_for('static', filename='uploads/' + p.image_filename) }}" alt="{{ p.nom }}"
+                            style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover;">
+                        {% endif %}
+                    {% else %}
+                    <div
+                        style="width: 50px; height: 50px; border-radius: 8px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; color: var(--muted);">
+                        <i class="fas fa-image"></i>
+                    </div>
+                    {% endif %}
+                </td>
+                <td style="font-family: monospace; font-weight: bold;">#{{ '%04d' % p.id }}</td>
+                <td style="font-weight: 600;">{{ p.nom }}</td>
+                <td style="color: var(--accent); font-weight: 700;">{{ p.prix }} $</td>
+                <td>{{ p.stock }} unités</td>
+                <td>
+                    {% for c in categories %}
+                        {% if c.id == p.id_categorie %}
+                            {{ c.nom }}
+                        {% endif %}
+                    {% endfor %}
+                </td>
+                <td style="display: flex; gap: 15px; font-size: 1.1rem;">
+                    <button onclick="editMode({{p.id}}, '{{p.nom|replace('\'', '\\\'')}}', {{p.prix}}, {{p.stock}}, {{p.id_categorie}})" style="background: none; border: none; color: var(--muted); cursor: pointer; transition: color 0.3s;" title="Modifier" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'"><i class="fas fa-edit"></i></button>
+                    <button onclick="supprimerProduit({{ p.id }})" style="background: none; border: none; color: #ef4444; cursor: pointer; transition: color 0.3s;" title="Supprimer" onmouseover="this.style.color='#dc2626'" onmouseout="this.style.color='#ef4444'"><i class="fas fa-trash"></i></button>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" style="text-align: center; padding: 40px; color: var(--muted);">Aucun produit disponible.</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <!-- Modal d'édition -->
+    <div id="editModal" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
+        <div class="form-container" style="position: relative; width: 90%; max-width: 500px; margin: 0;">
+            <button onclick="document.getElementById('editModal').style.display='none'" style="position: absolute; top: 15px; right: 20px; background:none; border:none; color:var(--muted); cursor:pointer; font-size:1.5rem; transition: color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--muted)'"><i class="fas fa-times"></i></button>
+            <h2 style="margin-top:0; margin-bottom:20px;">Modifier le Produit</h2>
+            <form id="editForm" onsubmit="submitEdit(event)">
+                <input type="hidden" id="edit_id">
+                <input type="text" id="edit_nom" class="form-control" required placeholder="Nom du produit">
+                <input type="number" step="0.01" id="edit_prix" class="form-control" required placeholder="Prix">
+                <input type="number" id="edit_stock" class="form-control" required placeholder="Stock">
+                <select id="edit_categorie" class="form-control" required style="appearance: auto;">
+                    {% for c in categories %}
+                    <option value="{{ c.id }}">{{ c.nom }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn-primary" style="margin-top: 15px;"><i class="fas fa-save"></i> Enregistrer les modifications</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function supprimerProduit(id) {
+            if(confirm("Êtes-vous sûr de vouloir supprimer définitivement ce produit ?")) {
+                fetch(`/produits/${id}/delete`, { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    if(data.success) location.reload();
+                })
+                .catch(err => alert("Erreur réseau."));
+            }
+        }
+        
+        function editMode(id, nom, prix, stock, cat) {
+            document.getElementById('edit_id').value = id;
+            document.getElementById('edit_nom').value = nom;
+            document.getElementById('edit_prix').value = prix;
+            document.getElementById('edit_stock').value = stock;
+            document.getElementById('edit_categorie').value = cat;
+            document.getElementById('editModal').style.display = 'flex';
+        }
+        
+        function submitEdit(e) {
+            e.preventDefault();
+            const id = document.getElementById('edit_id').value;
+            const formData = new FormData();
+            formData.append('nom', document.getElementById('edit_nom').value);
+            formData.append('prix', document.getElementById('edit_prix').value);
+            formData.append('stock', document.getElementById('edit_stock').value);
+            formData.append('id_categorie', document.getElementById('edit_categorie').value);
+            
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Traitement...';
+            btn.disabled = true;
+
+            fetch(`/produits/${id}/edit`, {
+                method: 'POST',
+                body: formData
+            }).then(r => r.json()).then(data => {
+                if(data.success) location.reload();
+            }).catch(err => {
+                alert("Erreur réseau.");
+                btn.innerHTML = '<i class="fas fa-save"></i> Enregistrer';
+                btn.disabled = false;
+            });
+        }
+    </script>
+</body>
+
+</html>
