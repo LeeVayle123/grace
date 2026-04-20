@@ -208,56 +208,51 @@ def admin_required(f):
 # --- Routes ---
 @app.route('/')
 def index():
+    # 1. On ne garde que les vrais produits de la base de données
+    produits_list = []
+    
+    # 2. Ajout des vrais produits issus de la base de données
+    cats = []
     try:
-        # 1. On ne garde que les vrais produits de la base de données
-        produits_list = []
+        cats = Categorie.query.all()
+        map_categories = {c.id: c.nom for c in cats}
+        produits_db = Produit.query.all()
         
-        # 2. Ajout des vrais produits issus de la base de données
-        cats = []
-        try:
-            cats = Categorie.query.all()
-            map_categories = {c.id: c.nom for c in cats}
-            produits_db = Produit.query.all()
-            
-            produits_db = Produit.query.all()
-            
-            for p in produits_db:
+        for p in produits_db:
+            try:
+                cat_name = map_categories.get(p.id_categorie, "VIP Collection")
                 try:
-                    cat_name = map_categories.get(p.id_categorie, "VIP Collection")
-                    try:
-                        prix_final = float(p.prix) if p.prix else 0.0
-                    except:
-                        prix_final = 0.0
-
-                    # Détermination de l'URL de l'image (Locale ou Supabase)
-                    img_path = p.image_filename
-                    if img_path:
-                        if not img_path.startswith('http'):
-                            img_path = f'/static/uploads/{img_path}'
-                    else:
-                        img_path = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600'
-
-                    produits_list.append({
-                        'id': p.id,
-                        'nom': p.nom or "Produit",
-                        'categorie': cat_name,
-                        'prix': prix_final,
-                        'note': 5.0,
-                        'avis': 1,
-                        'image': img_path,
-                        'video': f'/static/uploads/{p.video_filename}' if p.video_filename else None
-                    })
+                    prix_final = float(p.prix) if p.prix else 0.0
                 except:
-                    continue
+                    prix_final = 0.0
 
-        return render_template('accueil.html', 
-                             produits_json=json.dumps(produits_list), 
-                             all_categories=[c.nom for c in cats] if cats else ["Tout"])
-    except Exception as e:
-        print(f"Erreur dans index : {e}")
-        return render_template('accueil.html', 
-                             produits_json=json.dumps([]), 
-                             all_categories=[])
+                # Détermination de l'URL de l'image (Locale ou Supabase)
+                img_path = p.image_filename
+                if img_path:
+                    if not img_path.startswith('http'):
+                        img_path = f'/static/uploads/{img_path}'
+                else:
+                    img_path = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600'
+
+                produits_list.append({
+                    'id': p.id,
+                    'nom': p.nom or "Produit",
+                    'categorie': cat_name,
+                    'prix': prix_final,
+                    'note': 5.0,
+                    'avis': 1,
+                    'image': img_path,
+                    'video': f'/static/uploads/{p.video_filename}' if p.video_filename else None
+                })
+            except:
+                continue
+
+    except Exception as db_err:
+        print(f"Erreur DB Index : {db_err}")
+
+    return render_template('accueil.html', 
+                         produits_json=json.dumps(produits_list), 
+                         all_categories=[c.nom for c in cats] if cats else ["Tout"])
 # --- Routes d'Authentification Admin ---
 
 @app.route('/login', methods=['GET', 'POST'])
