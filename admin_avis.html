@@ -250,10 +250,10 @@
                         {% elif a.produit.video_filename %}
                             <video src="/static/uploads/{{ a.produit.video_filename }}" muted loop autoplay playsinline style="width: 60px; height: 60px; object-fit: cover; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);"></video>
                         {% else %}
-                            <div style="width: 60px; height: 60px; background: #262626; border-radius: 12px; display: flex; alignItems: center; justifyContent: center;"><i class="fas fa-image" style="color: #444;"></i></div>
+                            <div style="width: 60px; height: 60px; background: #262626; border-radius: 12px; display: flex; align-items: center; justify-content: center;"><i class="fas fa-image" style="color: #444;"></i></div>
                         {% endif %}
                     {% else %}
-                        <div style="width: 60px; height: 60px; background: #262626; border-radius: 12px; display: flex; alignItems: center; justifyContent: center;"><i class="fas fa-question" style="color: #444;"></i></div>
+                        <div style="width: 60px; height: 60px; background: #262626; border-radius: 12px; display: flex; align-items: center; justify-content: center;"><i class="fas fa-question" style="color: #444;"></i></div>
                     {% endif %}
                 </td>
                 <td style="font-weight: 600; color: var(--accent);">

@@ -114,10 +114,13 @@ class Avis(db.Model):
     # Relation virtuelle pour l'admin
     produit = db.relationship('Produit', primaryjoin="Avis.id_produit == Produit.id", foreign_keys="Avis.id_produit", backref='avis_list', lazy=True)
 
+# --- Initialisation de la Base de Données ---
 with app.app_context():
     try:
+        # Création de toutes les tables définies dans les modèles ci-dessus
         db.create_all()
-        # --- Initialisation des catégories ---
+        
+        # --- Initialisation des catégories par défaut si elles n'existent pas ---
         noms_categories = ["Informatique", "Électronique", "Beauté", "Maison", "Téléphones", "Homme", "Femme"]
         for nom in noms_categories:
             exist = Categorie.query.filter_by(nom=nom).first()
@@ -126,9 +129,9 @@ with app.app_context():
                 db.session.add(nouvelle_cat)
         db.session.commit()
 
-        # Migrations manuelles sécurisées
+        # Migrations manuelles pour ajouter des colonnes si vous mettez à jour votre code plus tard
         with db.engine.connect() as conn:
-            # Liste des colonnes à vérifier/ajouter
+            # Liste des colonnes à vérifier/ajouter (Table, Nom Colonne, Type)
             migrations = [
                 ('produit', 'video_filename', 'VARCHAR(255)'),
                 ('commande', 'rdv_adresse', 'TEXT'),
@@ -141,6 +144,7 @@ with app.app_context():
                     conn.execute(db.text(f'ALTER TABLE {table} ADD COLUMN {col} {col_type}'))
                     conn.commit()
                 except Exception:
+                    # Si la colonne existe déjà, SQL renverra une erreur qu'on ignore ici
                     pass
     except Exception as e:
         print(f"Erreur d'init DB : {e}")
@@ -215,6 +219,8 @@ def index():
             map_categories = {c.id: c.nom for c in cats}
             produits_db = Produit.query.all()
             
+            produits_db = Produit.query.all()
+            
             for p in produits_db:
                 try:
                     cat_name = map_categories.get(p.id_categorie, "VIP Collection")
@@ -243,36 +249,46 @@ def index():
                     })
                 except:
                     continue
-        except Exception as db_err:
-            print(f"Erreur DB Index : {db_err}")
 
         return render_template('accueil.html', 
                              produits_json=json.dumps(produits_list), 
                              all_categories=[c.nom for c in cats] if cats else ["Tout"])
-    except Exception as fatal_err:
-        import traceback
-        error_details = traceback.format_exc()
-        return f"Erreur critique lors du chargement de la boutique : {fatal_err}<br><pre>{error_details}</pre>", 500
+    except Exception as e:
+        print(f"Erreur dans index : {e}")
+        return render_template('accueil.html', 
+                             produits_json=json.dumps([]), 
+                             all_categories=[])
+# --- Routes d'Authentification Admin ---
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    # Gère la connexion à l'interface d'administration
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
         
-        # Identifiants demandés par l'utilisateur
-        if username == 'graceceening' and password == 'graces123':
+        # Vérification simple (à améliorer avec des hashs en production réelle)
+        if username == 'admin' and password == 'admin123':
             session['admin_logged_in'] = True
             return redirect(url_for('admin_dashboard'))
         else:
-            flash('Nom d\'utilisateur ou mot de passe incorrect.')
-            
+            flash("Identifiants incorrects.")
     return render_template('login.html')
 
 @app.route('/logout')
 def logout():
+    # Déconnexion de la session admin
     session.pop('admin_logged_in', None)
     return redirect(url_for('login'))
+
+# --- Routes Boutique (Client) ---
+
+@app.route('/')
+def home():
+    # Page principale de la boutique (Affichage des produits)
+    produits = Produit.query.all()
+    categories = [c.nom for c in Categorie.query.all()]
+    return render_template('accueil.html', produits=produits, categories=categories)
 
 @app.route('/produits', methods=['GET', 'POST'])
 @admin_required
@@ -643,6 +659,22 @@ def suivi_commande():
     return render_template('suivi.html', commande=commande, erreur=erreur)
 
 # --- Lancement du serveur ---
+@app.route('/api/avis/<int:id>/delete', methods=['POST'])
+@admin_required
+def delete_avis(id):
+    # Suppression d'un avis ou d'un Like spécifique par son ID
+    try:
+        avis = Avis.query.get(id)
+        if avis:
+            db.session.delete(avis)
+            db.session.commit()
+            return jsonify({'success': True}), 200
+        return jsonify({'success': False, 'message': 'Avis non trouvé'}), 404
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 if __name__ == '__main__':
+    # Point d'entrée de l'application
     app.run(debug=True)
 

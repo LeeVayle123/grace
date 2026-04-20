@@ -743,6 +743,7 @@
 
         // Panneau latéral pour le panier d'achat
         function PanierLateral({ isOpen, onClose, panier, modifierQuantite }) {
+            // Fonction pour afficher le panier latéral avec les produits sélectionnés
             // Calcul du prix total du panier
             const total = panier.reduce((acc, p) => acc + (p.prix * p.quantite), 0);
 
@@ -920,6 +921,7 @@
         }
 
         function ModalProduit({ p, onClose, onAjouter, onCommanderImmediat }) {
+            // Fonction pour afficher la modal détaillée d'un produit
             const [isLiked, setIsLiked] = React.useState(false);
             const [localLikes, setLocalLikes] = React.useState(0);
             const [avisList, setAvisList] = React.useState([]);
@@ -1310,6 +1312,7 @@
         /* ================== APPLICATION PRINCIPALE (MAIN APP) ================== */
 
         function App() {
+            // Fonction principale de l'application React pour la page d'accueil
             const [produits] = useState(produitsExemples);
             const categories = useMemo(() => {
                 const present = Array.from(new Set(produits.map(p => p.categorie)));
@@ -1548,6 +1551,15 @@
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
+
+        // Confirmation de sortie : demande si l'utilisateur veut quitter le site
+        let confirmQuitActive = true;
+        window.addEventListener('beforeunload', function (event) {
+            if (!confirmQuitActive) return;
+            event.preventDefault();
+            event.returnValue = '';
+            return '';
+        });
         {% endraw %}
     </script>
 </body>

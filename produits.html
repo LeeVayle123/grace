@@ -36,7 +36,7 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Barre Latérale (Même que Dashboard) */
+        /* Barre Latérale */
         .barre-laterale {
             width: var(--sidebar-width);
             background-color: var(--carte);
@@ -46,6 +46,12 @@
             position: fixed;
             height: 100%;
             z-index: 100;
+            transform: translateX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .barre-laterale.hidden {
+            transform: translateX(-100%);
         }
 
         .logo-conteneur {
@@ -119,6 +125,7 @@
             flex: 1;
             margin-left: var(--sidebar-width);
             padding: 50px 60px;
+            transition: margin-left 0.3s ease;
         }
 
         .header-top {
@@ -332,6 +339,53 @@
             border-color: var(--accent);
             box-shadow: 0 0 0 4px var(--accent-soft);
         }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .barre-laterale {
+                transform: translateX(-100%);
+            }
+            .barre-laterale.open {
+                transform: translateX(0);
+            }
+            .contenu-principal {
+                margin-left: 0;
+            }
+            .contenu-principal.shifted {
+                margin-left: var(--sidebar-width);
+            }
+            .header-top {
+                position: relative;
+            }
+            .toggle-sidebar {
+                display: block;
+            }
+            .sidebar-overlay {
+                display: block;
+            }
+        }
+
+        .toggle-sidebar {
+            display: none;
+            background: var(--carte);
+            border: 1px solid var(--bordure);
+            color: var(--texte);
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+        }
     </style>
 </head>
 
@@ -342,26 +396,29 @@
             <div class="logo-texte">LA GRACE<br><span class="accent">SEEMIN</span></div>
         </div>
         <nav class="menu-navigation">
-            <a href="/admin" class="lien-navigation">
+            <a href="/admin" class="lien-navigation" onclick="closeSidebarOnMobile()">
                 <i class="fas fa-chart-pie"></i> Vue d'ensemble
             </a>
-            <a href="/commandes" class="lien-navigation">
+            <a href="/commandes" class="lien-navigation" onclick="closeSidebarOnMobile()">
                 <i class="fas fa-box-open"></i> Gérer les Commandes
             </a>
-            <a href="/produits" class="lien-navigation actif">
+            <a href="/produits" class="lien-navigation actif" onclick="closeSidebarOnMobile()">
                 <i class="fas fa-tags"></i> Gestion des Produits
             </a>
-            <a href="/clients" class="lien-navigation">
+            <a href="/clients" class="lien-navigation" onclick="closeSidebarOnMobile()">
                 <i class="fas fa-users"></i> Base Clients
             </a>
-            <a href="/admin/avis" class="lien-navigation">
+            <a href="/admin/avis" class="lien-navigation" onclick="closeSidebarOnMobile()">
                 <i class="fas fa-comments"></i> Avis & Commentaires
             </a>
         </nav>
     </aside>
 
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
     <main class="contenu-principal">
         <div class="header-top">
+            <button class="toggle-sidebar" onclick="toggleSidebar()">☰</button>
             <h1>Gestion des <span class="accent">Produits</span></h1>
             <p style="color: var(--muted);">Ajoutez et gérez votre catalogue de produits en toute simplicité.</p>
         </div>
@@ -512,7 +569,25 @@
     </div>
 
     <script>
+        function toggleSidebar() {
+            // Fonction pour basculer l'affichage de la barre latérale sur mobile
+            const sidebar = document.querySelector('.barre-laterale');
+            const content = document.querySelector('.contenu-principal');
+            const overlay = document.querySelector('.sidebar-overlay');
+            sidebar.classList.toggle('open');
+            content.classList.toggle('shifted');
+            overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
+        }
+
+        function closeSidebarOnMobile() {
+            // Ferme la barre latérale si on est sur mobile après avoir cliqué sur un lien
+            if (window.innerWidth <= 768) {
+                toggleSidebar();
+            }
+        }
+
         function filterTable() {
+            // Fonction pour filtrer le tableau des produits en fonction de la recherche
             const input = document.getElementById('searchInput');
             const filter = input.value.toLowerCase();
             const table = document.querySelector('table');
@@ -532,6 +607,7 @@
         }
 
         function supprimerProduit(id) {
+            // Fonction pour supprimer un produit après confirmation
             if(confirm("Êtes-vous sûr de vouloir supprimer définitivement ce produit ?")) {
                 fetch(`/produits/${id}/delete`, { method: 'POST' })
                 .then(r => r.json())
@@ -543,6 +619,7 @@
         }
         
         function editMode(id, nom, prix, stock, cat) {
+            // Fonction pour ouvrir la modal d'édition avec les valeurs du produit
             document.getElementById('edit_id').value = id;
             document.getElementById('edit_nom').value = nom;
             document.getElementById('edit_prix').value = prix;
@@ -552,6 +629,7 @@
         }
         
         function submitEdit(e) {
+            // Fonction pour soumettre les modifications d'un produit
             e.preventDefault();
             const id = document.getElementById('edit_id').value;
             const formData = new FormData();
