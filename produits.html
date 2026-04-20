@@ -155,11 +155,37 @@
 
         .form-container {
             background: var(--carte);
-            border-radius: 20px;
-            padding: 30px;
+            border-radius: 24px;
+            padding: 40px;
             margin-bottom: 50px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            max-width: 600px;
+            border: 1px solid var(--bordure);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .form-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--bordure);
+        }
+
+        .form-header i {
+            font-size: 1.5rem;
+            color: var(--accent);
+        }
+
+        .form-header h2 {
+            margin: 0;
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
         }
 
         .form-control {
@@ -225,12 +251,86 @@
         }
 
         .product-preview {
-            width: 65px;
-            height: 65px;
+            width: 55px;
+            height: 55px;
             border-radius: 12px;
             object-fit: cover;
             border: 1px solid var(--bordure);
             background: #111;
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+            transition: background 0.2s;
+        }
+
+        .btn-action-delete {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-action-delete:hover {
+            background: #ef4444;
+            color: white;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-action-edit {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--muted);
+            border: 1px solid var(--bordure);
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-action-edit:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .search-bar-container {
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .search-bar-container i {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+        }
+
+        .search-bar {
+            width: 100%;
+            background: var(--carte);
+            border: 1px solid var(--bordure);
+            padding: 15px 15px 15px 50px;
+            border-radius: 15px;
+            color: white;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+        }
+
+        .search-bar:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px var(--accent-soft);
         }
     </style>
 </head>
@@ -261,42 +361,91 @@
     </aside>
 
     <main class="contenu-principal">
-        <h1>Gestion des <span class="accent">Produits</span></h1>
+        <div class="header-top">
+            <h1>Gestion des <span class="accent">Produits</span></h1>
+            <p style="color: var(--muted);">Ajoutez et gérez votre catalogue de produits en toute simplicité.</p>
+        </div>
 
+    <!-- Formulaire d'Ajout de Produit -->
     <div class="form-container">
+        <div class="form-header">
+            <i class="fas fa-plus-circle"></i>
+            <h2>Nouveau Produit</h2>
+        </div>
         <form method="POST" enctype="multipart/form-data">
-            <input type="text" name="nom" placeholder="Nom du produit" class="form-control" required>
-            <input type="number" step="0.01" name="prix" placeholder="Prix du produit (USD)" class="form-control"
-                required>
-            <input type="number" name="stock" placeholder="Stock disponible" class="form-control" required>
-            <select name="id_categorie" class="form-control" required style="appearance: auto;">
-                <option value="" disabled selected>Choisir une catégorie...</option>
-                {% for c in categories %}
-                <option value="{{ c.id }}">{{ c.nom }}</option>
-                {% endfor %}
-            </select>
-            <textarea name="description" placeholder="Description du produit" class="form-control" rows="3" style="resize: none;"></textarea>
-            <input type="file" name="image" class="form-control" accept="image/*" style="padding-top:10px;">
-            <label style="color:var(--muted);font-size:0.9rem;margin-bottom:5px;display:block;"><i class="fas fa-video" style="color:var(--accent);"></i> Vidéo du produit (optionnel — jouera automatiquement)</label>
-            <input type="file" name="video" class="form-control" accept="video/*" style="padding-top:10px;">
-            <button type="submit" class="btn-primary"><i class="fas fa-plus"></i> Ajouter au catalogue</button>
+            <div class="form-grid">
+                <div class="field-group">
+                    <label style="display: block; margin-bottom: 10px; color: var(--muted); font-size: 0.9rem;">Nom du produit</label>
+                    <input type="text" name="nom" required class="form-control" placeholder="Ex: Robe de soirée">
+                </div>
+                <div class="field-group">
+                    <label style="display: block; margin-bottom: 10px; color: var(--muted); font-size: 0.9rem;">Prix (USD)</label>
+                    <input type="number" step="0.01" name="prix" required class="form-control" placeholder="50.00">
+                </div>
+                <div class="field-group">
+                    <label style="display: block; margin-bottom: 10px; color: var(--muted); font-size: 0.9rem;">Catégorie</label>
+                    <select name="id_categorie" class="form-control">
+                        {% for c in categories %}
+                        <option value="{{ c.id }}">{{ c.nom }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label style="display: block; margin-bottom: 10px; color: var(--muted); font-size: 0.9rem;">Stock initial</label>
+                    <input type="number" name="stock" class="form-control" placeholder="10">
+                </div>
+            </div>
+            
+            <div class="field-group" style="margin-top: 20px;">
+                <label style="display: block; margin-bottom: 10px; color: var(--muted); font-size: 0.9rem;">Description</label>
+                <textarea name="description" placeholder="Description détaillée pour vos clients..." class="form-control" rows="4"></textarea>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+                <div class="upload-box">
+                    <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; color: var(--muted); font-size: 0.85rem;">
+                        <i class="fas fa-image"></i> Image principale
+                    </label>
+                    <input type="file" name="image" accept="image/*" class="form-control">
+                </div>
+                <div class="upload-box">
+                    <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; color: var(--muted); font-size: 0.85rem;">
+                        <i class="fas fa-video"></i> Vidéo (Optionnel)
+                    </label>
+                    <input type="file" name="video" accept="video/mp4" class="form-control">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary" style="margin-top: 40px; height: 60px;">
+                <i class="fas fa-check-circle" style="margin-right: 10px;"></i> Publier sur la boutique
+            </button>
         </form>
     </div>
 
-    <h2>Catalogue Actuel</h2>
+    <!-- Recherche et Liste -->
+    <div class="search-bar-container">
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchInput" class="search-bar" placeholder="Rechercher un produit par nom ou catégorie..." onkeyup="filterTable()">
+    </div>
+
+    <!-- Tableau de la Liste des Produits -->
     <div class="table-container">
         <table>
-            <tr>
-                <th>Visuel</th>
-                <th>ID</th>
-                <th>Nom</th>
-                <th>Prix</th>
-                <th>Stock</th>
-                <th>Catégorie</th>
-                <th>Actions</th>
-            </tr>
-            {% for p in produits %}
-            <tr>
+            <thead>
+                <tr>
+                    <th>Aperçu</th>
+                    <th>ID</th>
+                    <th>Nom</th>
+                    <th>Prix</th>
+                    <th>Stock</th>
+                    <th>Catégorie</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Boucle sur chaque produit (p) renvoyé par le backend -->
+                {% for p in produits %}
+                <tr>
                 <td>
                     {% if p.video_filename %}
                     <video src="{{ url_for('static', filename='uploads/' + p.video_filename) }}"
@@ -325,9 +474,13 @@
                         {% endif %}
                     {% endfor %}
                 </td>
-                <td style="display: flex; gap: 15px; font-size: 1.1rem;">
-                    <button onclick="editMode({{p.id}}, '{{p.nom|replace('\'', '\\\'')}}', {{p.prix}}, {{p.stock}}, {{p.id_categorie}})" style="background: none; border: none; color: var(--muted); cursor: pointer; transition: color 0.3s;" title="Modifier" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'"><i class="fas fa-edit"></i></button>
-                    <button onclick="supprimerProduit({{ p.id }})" style="background: none; border: none; color: #ef4444; cursor: pointer; transition: color 0.3s;" title="Supprimer" onmouseover="this.style.color='#dc2626'" onmouseout="this.style.color='#ef4444'"><i class="fas fa-trash"></i></button>
+                <td style="display: flex; gap: 10px;">
+                    <button class="btn-action-edit" onclick="editMode({{p.id}}, '{{p.nom|replace('\'', '\\\'')}}', {{p.prix}}, {{p.stock}}, {{p.id_categorie}})" title="Modifier">
+                        <i class="fas fa-edit" style="font-size: 0.9rem;"></i>
+                    </button>
+                    <button class="btn-action-delete" onclick="supprimerProduit({{ p.id }})" title="Supprimer définitivement">
+                        <i class="fas fa-trash-alt" style="font-size: 0.9rem;"></i>
+                    </button>
                 </td>
             </tr>
             {% else %}
@@ -359,6 +512,25 @@
     </div>
 
     <script>
+        function filterTable() {
+            const input = document.getElementById('searchInput');
+            const filter = input.value.toLowerCase();
+            const table = document.querySelector('table');
+            const tr = table.getElementsByTagName('tr');
+
+            for (let i = 1; i < tr.length; i++) {
+                let found = false;
+                const td = tr[i].getElementsByTagName('td');
+                for (let j = 0; j < td.length; j++) {
+                    if (td[j].textContent.toLowerCase().indexOf(filter) > -1) {
+                        found = true;
+                        break;
+                    }
+                }
+                tr[i].style.display = found ? "" : "none";
+            }
+        }
+
         function supprimerProduit(id) {
             if(confirm("Êtes-vous sûr de vouloir supprimer définitivement ce produit ?")) {
                 fetch(`/produits/${id}/delete`, { method: 'POST' })

@@ -126,12 +126,14 @@
 <body>
     <div class="login-card">
         <div class="logo-conteneur">
+            <!-- Logo et Nom de la boutique -->
             <img src="/static/log.jpeg" alt="Logo" class="logo-img" onerror="this.src='https://placehold.co/100x100?text=GRACE'">
             <div class="logo-texte">LA GRACE<br><span class="accent">SEEMIN</span></div>
         </div>
         <h2>Espace Administration</h2>
         <p>Identifiez-vous pour gérer votre boutique.</p>
 
+        <!-- Affichage des messages d'erreur du backend (Flash messages) -->
         {% with messages = get_flashed_messages() %}
           {% if messages %}
             {% for message in messages %}
@@ -140,13 +142,14 @@
           {% endif %}
         {% endwith %}
 
+        <!-- Formulaire de Connexion -->
         <form method="POST" action="{{ url_for('login') }}">
             <div class="form-group">
-                <label>Nom d'utilisateur</label>
+                <label><i class="fas fa-user"></i> Nom d'utilisateur</label>
                 <input type="text" name="username" required placeholder="Ex: admin">
             </div>
             <div class="form-group">
-                <label>Mot de passe</label>
+                <label><i class="fas fa-lock"></i> Mot de passe</label>
                 <input type="password" name="password" required placeholder="••••••••">
             </div>
             <button type="submit" class="btn-login">S'identifier</button>

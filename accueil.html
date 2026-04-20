@@ -717,8 +717,9 @@
         const { useState, useMemo } = React;
         const { motion, AnimatePresence } = window.Motion;
 
-        /* ================== COMPONENTS ================== */
+        /* ================== COMPOSANTS (COMPONENTS) ================== */
 
+        // Système de notifications temporaires (Toasts)
         function Toasts({ toasts }) {
             return (
                 <div style={{ position: 'fixed', bottom: 30, left: "50%", transform: "translateX(-50%)", zIndex: 9999, display: 'flex', flexDirection: 'column', gap: 10, pointerEvents: 'none' }}>
@@ -740,7 +741,9 @@
             );
         }
 
+        // Panneau latéral pour le panier d'achat
         function PanierLateral({ isOpen, onClose, panier, modifierQuantite }) {
+            // Calcul du prix total du panier
             const total = panier.reduce((acc, p) => acc + (p.prix * p.quantite), 0);
 
             return (
@@ -842,7 +845,9 @@
             );
         }
 
+        // Fenêtre de finalisation de commande (Formulaire client)
         function ModalCheckout({ items, onClose, onSucess }) {
+            // État local pour les informations du client
             const [info, setInfo] = useState({ nom: '', postnom: '', telephone: '', adresse: '' });
             const [loading, setLoading] = useState(false);
             const total = items.reduce((acc, p) => acc + (p.prix * (p.quantite || 1)), 0);
@@ -1093,7 +1098,7 @@
             const [totalAvis, setTotalAvis] = React.useState(0);
 
             React.useEffect(() => {
-                // Charger les stats
+                // Chargement initial des likes et avis depuis l'API
                 fetch('/api/avis/produit/' + p.id)
                     .then(r => r.json())
                     .then(data => { 
@@ -1102,7 +1107,7 @@
                     })
                     .catch(() => { });
 
-                // Vérifier si déjà liké localement
+                // Vérification locale si l'utilisateur a déjà aimé ce produit (persistance locale)
                 const likedItems = JSON.parse(localStorage.getItem('likedProducts') || '[]');
                 if (likedItems.includes(p.id)) {
                     setIsLiked(true);
@@ -1134,6 +1139,7 @@
                 localStorage.setItem('likedProducts', JSON.stringify(likedItems));
             };
 
+            // Gestion du partage (API Native du téléphone si disponible)
             const handleShare = (e) => {
                 e.stopPropagation();
                 const url = window.location.href;
@@ -1144,6 +1150,7 @@
                         url: url
                     }).catch(err => console.log('Erreur de partage', err));
                 } else {
+                    // Fallback : copier le lien si l'appareil ne gère pas le partage natif
                     navigator.clipboard.writeText(url).then(() => {
                         alert("Lien de la boutique copié !");
                     });
@@ -1299,6 +1306,8 @@
                 </section>
             );
         }
+
+        /* ================== APPLICATION PRINCIPALE (MAIN APP) ================== */
 
         function App() {
             const [produits] = useState(produitsExemples);
