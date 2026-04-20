@@ -8,11 +8,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --fond: #0a0a0a;
-            --carte: #171717;
+            --fond: #050505;
+            --carte: #0f0f0f;
             --accent: #f97316;
-            --texte: #f3f4f6;
-            --muted: #a1a1aa;
+            --texte: #f9fafb;
+            --muted: #9ca3af;
+            --bordure: rgba(255, 255, 255, 0.08);
         }
 
         body {
@@ -30,21 +31,40 @@
         .login-card {
             background: var(--carte);
             width: 100%;
-            max-width: 400px;
-            padding: 40px;
-            border-radius: 24px;
-            border: 1px solid rgba(255,255,255,0.05);
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            max-width: 420px;
+            padding: 50px 40px;
+            border-radius: 28px;
+            border: 1px solid var(--bordure);
+            box-shadow: 0 40px 100px rgba(0,0,0,0.6);
             text-align: center;
         }
 
-        .logo {
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: var(--accent);
-            margin-bottom: 30px;
-            letter-spacing: -1px;
+        .logo-conteneur {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 35px;
         }
+
+        .logo-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent);
+            background: #fff;
+        }
+
+        .logo-texte {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--texte);
+            letter-spacing: -1px;
+            line-height: 1.1;
+        }
+
+        .logo-texte .accent { color: var(--accent); }
 
         h2 { font-size: 1.5rem; margin-bottom: 15px; }
         p { color: var(--muted); margin-bottom: 30px; font-size: 0.95rem; }
@@ -105,9 +125,12 @@
 </head>
 <body>
     <div class="login-card">
-        <div class="logo">LA GRACE SEEMIN</div>
-        <h2>Accès Réservé</h2>
-        <p>Veuillez vous identifier pour accéder au tableau de bord.</p>
+        <div class="logo-conteneur">
+            <img src="/static/log.jpeg" alt="Logo" class="logo-img" onerror="this.src='https://placehold.co/100x100?text=GRACE'">
+            <div class="logo-texte">LA GRACE<br><span class="accent">SEEMIN</span></div>
+        </div>
+        <h2>Espace Administration</h2>
+        <p>Identifiez-vous pour gérer votre boutique.</p>
 
         {% with messages = get_flashed_messages() %}
           {% if messages %}

@@ -12,13 +12,14 @@
     
     <style>
         :root {
-            --fond: #0a0a0a;
-            --carte: #171717;
-            --texte: #f3f4f6;
+            --fond: #050505;
+            --carte: #0f0f0f;
+            --carte-hover: #161616;
+            --texte: #f9fafb;
             --accent: #f97316;
-            --accent-hover: #ea580c;
-            --accent-bg: rgba(249, 115, 22, 0.15);
-            --muted: #a1a1aa;
+            --accent-soft: rgba(249, 115, 22, 0.1);
+            --muted: #9ca3af;
+            --bordure: rgba(255, 255, 255, 0.08);
             --sidebar-width: 280px;
         }
 
@@ -37,7 +38,7 @@
         .barre-laterale {
             width: var(--sidebar-width);
             background-color: var(--carte);
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            border-right: 1px solid var(--bordure);
             display: flex;
             flex-direction: column;
             position: fixed;
@@ -46,58 +47,72 @@
         }
 
         .logo-conteneur {
-            padding: 40px 30px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 40px 25px;
+            border-bottom: 1px solid var(--bordure);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            text-align: center;
         }
 
-        .logo {
-            font-size: 1.8rem;
+        .logo-img {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent);
+            background: #fff;
+        }
+
+        .logo-texte {
+            font-size: 1.25rem;
             font-weight: 800;
             color: var(--texte);
             text-decoration: none;
             letter-spacing: -0.5px;
+            line-height: 1.2;
         }
 
-        .logo span.accent {
+        .logo-texte .accent {
             color: var(--accent);
         }
 
         .menu-navigation {
-            padding: 30px 20px;
+            padding: 25px 15px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 8px;
             flex: 1;
         }
 
         .lien-navigation {
             display: flex;
             align-items: center;
-            gap: 15px;
-            padding: 16px 20px;
+            gap: 12px;
+            padding: 14px 18px;
             color: var(--muted);
             text-decoration: none;
-            font-size: 1.1rem;
+            font-size: 0.95rem;
             font-weight: 600;
-            border-radius: 16px;
-            transition: all 0.3s;
+            border-radius: 12px;
+            /* Pas de transition selon demande "statique" */
         }
 
         .lien-navigation i {
-            font-size: 1.3rem;
-            width: 24px;
+            font-size: 1.1rem;
+            width: 20px;
             text-align: center;
         }
 
         .lien-navigation:hover {
-            background-color: #262626;
+            background-color: var(--carte-hover);
             color: var(--texte);
         }
 
         .lien-navigation.actif {
-            background-color: var(--accent-bg);
+            background-color: var(--accent-soft);
             color: var(--accent);
-            border: 1px solid rgba(249, 115, 22, 0.2);
         }
 
         /* Contenu Principal */
@@ -116,9 +131,9 @@
 
         .titre-page {
             margin: 0;
-            font-size: 2.8rem;
+            font-size: 2.2rem;
             font-weight: 800;
-            letter-spacing: -1px;
+            letter-spacing: -0.5px;
         }
 
         .sous-titre {
@@ -137,21 +152,19 @@
 
         .carte-statistique {
             background: var(--carte);
-            border-radius: 24px;
-            padding: 35px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid var(--bordure);
             position: relative;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            transition: transform 0.3s;
+            gap: 12px;
+            /* Suppression des transitions et transforms */
         }
 
         .carte-statistique:hover {
-            transform: translateY(-8px);
-            border-color: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.15);
         }
 
         .icone-fond {
@@ -205,43 +218,20 @@
         }
 
         .carte-action {
-            background: linear-gradient(135deg, var(--carte), #1a1a1a);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            padding: 30px;
+            background: var(--carte);
+            border: 1px solid var(--bordure);
+            border-radius: 16px;
+            padding: 25px;
             text-decoration: none;
             color: var(--texte);
             display: flex;
             align-items: center;
-            gap: 20px;
-            transition: all 0.3s;
+            gap: 18px;
         }
 
         .carte-action:hover {
-            background: var(--accent);
-            box-shadow: 0 10px 25px rgba(249, 115, 22, 0.3);
-            transform: scale(1.02);
+            background: var(--carte-hover);
             border-color: var(--accent);
-        }
-
-        .carte-action i {
-            font-size: 2.2rem;
-        }
-
-        .info-action h3 {
-            margin: 0 0 5px 0;
-            font-size: 1.25rem;
-            font-weight: 700;
-        }
-
-        .info-action p {
-            margin: 0;
-            color: var(--muted);
-            font-size: 0.95rem;
-        }
-
-        .carte-action:hover .info-action p {
-            color: rgba(255, 255, 255, 0.8);
         }
 
     </style>
@@ -251,7 +241,8 @@
     <!-- Barre Latérale de Navigation -->
     <aside class="barre-laterale">
         <div class="logo-conteneur">
-            <a href="/" class="logo">Boutique<span class="accent">Orange</span> Admin</a>
+            <img src="/static/log.jpeg" alt="Logo" class="logo-img" onerror="this.src='https://placehold.co/100x100?text=GRACE'">
+            <div class="logo-texte">LA GRACE<br><span class="accent">SEEMIN</span></div>
         </div>
         <nav class="menu-navigation">
             <a href="/admin" class="lien-navigation actif">

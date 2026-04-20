@@ -12,20 +12,111 @@
     
     <style>
         :root {
-            --fond: #0a0a0a;
-            --carte: #171717;
-            --texte: #f3f4f6;
+            --fond: #050505;
+            --carte: #0f0f0f;
+            --carte-hover: #161616;
+            --texte: #f9fafb;
             --accent: #f97316;
-            --muted: #a1a1aa;
+            --accent-soft: rgba(249, 115, 22, 0.1);
+            --muted: #9ca3af;
+            --bordure: rgba(255, 255, 255, 0.08);
+            --sidebar-width: 280px;
         }
 
         body {
             font-family: 'Outfit', sans-serif;
             background-color: var(--fond);
             margin: 0;
-            padding: 60px 5%;
+            padding: 0;
             color: var(--texte);
+            display: flex;
+            min-height: 100vh;
             -webkit-font-smoothing: antialiased;
+        }
+
+        /* Barre Latérale (Même que Dashboard) */
+        .barre-laterale {
+            width: var(--sidebar-width);
+            background-color: var(--carte);
+            border-right: 1px solid var(--bordure);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100%;
+            z-index: 100;
+        }
+
+        .logo-conteneur {
+            padding: 40px 25px;
+            border-bottom: 1px solid var(--bordure);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            text-align: center;
+        }
+
+        .logo-img {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent);
+            background: #fff;
+        }
+
+        .logo-texte {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--texte);
+            text-decoration: none;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+        }
+
+        .logo-texte .accent { color: var(--accent); }
+
+        .menu-navigation {
+            padding: 25px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .lien-navigation {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border-radius: 12px;
+        }
+
+        .lien-navigation i {
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .lien-navigation:hover {
+            background-color: var(--carte-hover);
+            color: var(--texte);
+        }
+
+        .lien-navigation.actif {
+            background-color: var(--accent-soft);
+            color: var(--accent);
+        }
+
+        /* Contenu Principal */
+        .contenu-principal {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 50px 60px;
         }
 
         .header-top {
@@ -48,20 +139,20 @@
 
         .btn-retour:hover { color: var(--accent); }
 
-        h1 { font-size: 2.8rem; margin: 0 0 40px 0; font-weight: 800; }
+        h1 { font-size: 2.2rem; margin: 0 0 40px 0; font-weight: 800; }
         h1 span.accent { color: var(--accent); }
 
         .table-container {
             background: var(--carte);
             border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--bordure);
             overflow: hidden;
             margin-top: 30px;
         }
 
         table { width: 100%; border-collapse: collapse; text-align: left; }
-        th, td { padding: 22px 30px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
-        th { background: rgba(0, 0, 0, 0.4); color: var(--muted); text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1.5px; }
+        th, td { padding: 18px 25px; border-bottom: 1px solid var(--bordure); }
+        th { background: rgba(0, 0, 0, 0.4); color: var(--muted); text-transform: uppercase; font-size: 0.8rem; font-weight: 700; letter-spacing: 1.5px; }
 
         .like-badge {
             background: rgba(244, 63, 94, 0.1);
@@ -77,13 +168,32 @@
     </style>
 </head>
 <body>
-    <div class="header-top">
-        <a href="/admin" class="btn-retour">
-            <i class="fas fa-arrow-left"></i> Tableau de bord Admin
-        </a>
-    </div>
+    <aside class="barre-laterale">
+        <div class="logo-conteneur">
+            <img src="/static/log.jpeg" alt="Logo" class="logo-img" onerror="this.src='https://placehold.co/100x100?text=GRACE'">
+            <div class="logo-texte">LA GRACE<br><span class="accent">SEEMIN</span></div>
+        </div>
+        <nav class="menu-navigation">
+            <a href="/admin" class="lien-navigation">
+                <i class="fas fa-chart-pie"></i> Vue d'ensemble
+            </a>
+            <a href="/commandes" class="lien-navigation">
+                <i class="fas fa-box-open"></i> Gérer les Commandes
+            </a>
+            <a href="/produits" class="lien-navigation">
+                <i class="fas fa-tags"></i> Gestion des Produits
+            </a>
+            <a href="/clients" class="lien-navigation">
+                <i class="fas fa-users"></i> Base Clients
+            </a>
+            <a href="/admin/avis" class="lien-navigation actif">
+                <i class="fas fa-comments"></i> Avis & Commentaires
+            </a>
+        </nav>
+    </aside>
 
-    <h1>Gestion des <span class="accent">Avis & Likes</span></h1>
+    <main class="contenu-principal">
+        <h1>Gestion des <span class="accent">Avis & Likes</span></h1>
 
     <div class="table-container">
         <table>
@@ -150,5 +260,6 @@
             } catch(e) { console.error(e); }
         }
     </script>
+    </main>
 </body>
 </html>
