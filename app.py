@@ -622,13 +622,6 @@ def admin_avis():
     avis_list = Avis.query.order_by(Avis.date.desc()).all()
     return render_template('admin_avis.html', avis_list=avis_list)
 
-@app.route('/api/avis/<int:id>/delete', methods=['POST'])
-def delete_avis(id):
-    avis = Avis.query.get_or_404(id)
-    db.session.delete(avis)
-    db.session.commit()
-    return jsonify({"success": True})
-
 @app.route('/suivi', methods=['GET', 'POST'])
 def suivi_commande():
     commande = None
@@ -671,5 +664,6 @@ def delete_avis(id):
 
 if __name__ == '__main__':
     # Point d'entrée de l'application
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)
 
