@@ -183,5 +183,14 @@
 
         <a href="/" class="btn-back"><i class="fas fa-arrow-left"></i> Retour à la boutique</a>
     </div>
+    <script>
+        let confirmQuitActive = true;
+        window.addEventListener('beforeunload', function (event) {
+            if (!confirmQuitActive) return;
+            event.preventDefault();
+            event.returnValue = '';
+            return '';
+        });
+    </script>
 </body>
 </html>
