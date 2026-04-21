@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Liste des Abonnés</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>Liste des Abonnés</h1>
+    <a href="/admin">⬅ Retour Admin</a>
+    <table border="1" cellpadding="8" cellspacing="0">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nom</th>
+                <th>Postnom</th>
+                <th>Email</th>
+                <th>Sexe</th>
+                <th>Date abonnement</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for abonne in abonnes %}
+            <tr>
+                <td>{{ abonne.id }}</td>
+                <td>{{ abonne.nom }}</td>
+                <td>{{ abonne.postnom }}</td>
+                <td>{{ abonne.email }}</td>
+                <td>{{ abonne.sexe }}</td>
+                <td>{{ abonne.date_abonnement.strftime('%d/%m/%Y') if abonne.date_abonnement else '' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6">Aucun abonné trouvé.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

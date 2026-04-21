@@ -233,31 +233,43 @@ def inscription_abonne():
     """Inscrire un nouveau client abonné"""
     try:
         data = request.json
-        
-        # Vérifier si l'email existe déjà
         email = data.get('email', '').strip()
-        if email and Client.query.filter_by(email=email).first():
-            return jsonify({"error": "Cet email est déjà utilisé"}), 400
-        
-        # Créer le nouveau client abonné
-        nouveau_client = Client(
-            nom=data.get('nom', 'Anonyme').strip(),
-            postnom=data.get('postnom', '').strip(),
-            sexe=data.get('sexe', '').strip(),
-            email=email,
-            mot_de_passe=bcrypt.generate_password_hash(data.get('mot_de_passe', 'guest')).decode('utf-8'),
-            est_abonne=True,
-            date_abonnement=db.func.current_timestamp(),
-            telephone=data.get('telephone', '').strip(),
-            adresse=data.get('adresse', '').strip()
-        )
-        db.session.add(nouveau_client)
-        db.session.commit()
-        
+        nom = data.get('nom', 'Anonyme').strip()
+        postnom = data.get('postnom', '').strip()
+        sexe = data.get('sexe', '').strip()
+
+        # Vérifier si l'email existe déjà ET est déjà abonné
+        client_existant = Client.query.filter_by(email=email).first()
+        if client_existant and client_existant.est_abonne:
+            return jsonify({"error": "Vous êtes déjà abonné avec cet email."}), 400
+
+        if client_existant:
+            # Mettre à jour le client existant pour l'abonner
+            client_existant.nom = nom
+            client_existant.postnom = postnom
+            client_existant.sexe = sexe
+            client_existant.est_abonne = True
+            client_existant.date_abonnement = db.func.current_timestamp()
+            db.session.commit()
+            client_id = client_existant.id
+        else:
+            # Créer un nouveau client abonné
+            nouveau_client = Client(
+                nom=nom,
+                postnom=postnom,
+                sexe=sexe,
+                email=email,
+                est_abonne=True,
+                date_abonnement=db.func.current_timestamp()
+            )
+            db.session.add(nouveau_client)
+            db.session.commit()
+            client_id = nouveau_client.id
+
         return jsonify({
-            "success": True, 
+            "success": True,
             "message": "Inscription réussie! Bienvenue parmi nos abonnés.",
-            "client_id": nouveau_client.id
+            "client_id": client_id
         }), 201
     except Exception as e:
         db.session.rollback()
@@ -484,11 +496,11 @@ def liste_produits():
             db.session.add(nouveau_produit)
             db.session.commit()
             
-            # --- Créer les notifications pour tous les abonnés ---
-            abonnes = Client.query.filter_by(est_abonne=True).all()
-            for abonne in abonnes:
+            # --- Créer les notifications pour tous les clients ---
+            clients = Client.query.all()
+            for client in clients:
                 notification = Notification(
-                    id_client=abonne.id,
+                    id_client=client.id,
                     id_produit=nouveau_produit.id,
                     titre=f"Nouveau produit: {nom}",
                     message=f"Un nouveau produit '{nom}' vient d'être ajouté à notre boutique! Découvrez-le maintenant.",
@@ -599,6 +611,13 @@ def admin_dashboard():
         'terminees': terminees
     }
     return render_template('admin.html', stats=stats)
+
+# --- Liste des abonnés pour l'admin ---
+@app.route('/admin/abonnes', methods=['GET'])
+@admin_required
+def admin_abonnes():
+    abonnes = Client.query.filter_by(est_abonne=True).order_by(Client.date_abonnement.desc()).all()
+    return render_template('admin_abonnes.html', abonnes=abonnes)
 
 @app.route('/admin/commandes/<int:id>/status', methods=['POST'])
 def update_commande_status(id):
