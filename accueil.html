@@ -852,7 +852,8 @@
                 nom: '',
                 postnom: '',
                 sexe: '',
-                email: ''
+                email: '',
+                telephone: ''
             });
             const [loading, setLoading] = useState(false);
             const [error, setError] = useState('');
@@ -868,9 +869,16 @@
                 setError('');
                 setLoading(true);
 
-                // Validation simple
+                // Validation
                 if (!formData.nom || !formData.email || !formData.sexe) {
-                    setError('Veuillez remplir tous les champs obligatoires');
+                    setError('Veuillez remplir tous les champs obligatoires (nom, email, sexe)');
+                    setLoading(false);
+                    return;
+                }
+                // Validation email basique
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(formData.email)) {
+                    setError('Veuillez entrer une adresse email valide.');
                     setLoading(false);
                     return;
                 }
@@ -889,7 +897,8 @@
                             nom: '',
                             postnom: '',
                             sexe: '',
-                            email: ''
+                            email: '',
+                            telephone: ''
                         });
                         onSuccess(data.client_id);
                     } else {
@@ -976,7 +985,14 @@
                                 />
                             </div>
 
-                            {/* Champs mot de passe, téléphone, adresse supprimés */}
+                            <input
+                                type="tel"
+                                name="telephone"
+                                placeholder="Numéro de téléphone"
+                                value={formData.telephone}
+                                onChange={handleChange}
+                                style={{ background: '#262626', border: '1px solid #333', color: 'white', padding: 12, borderRadius: 10, width: '100%', boxSizing: 'border-box' }}
+                            />
 
                             <div style={{ display: 'flex', gap: 12, flexDirection: isMobile ? 'column' : 'row', marginTop: 10 }}>
                                 <button

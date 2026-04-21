@@ -233,32 +233,43 @@ def inscription_abonne():
     """Inscrire un nouveau client abonné"""
     try:
         data = request.json
-        email = data.get('email', '').strip()
+        email = data.get('email', '').strip().lower()
         nom = data.get('nom', 'Anonyme').strip()
         postnom = data.get('postnom', '').strip()
         sexe = data.get('sexe', '').strip()
+        telephone = data.get('telephone', '').strip()
 
-        # Vérifier si l'email existe déjà ET est déjà abonné
-        client_existant = Client.query.filter_by(email=email).first()
-        if client_existant and client_existant.est_abonne:
-            return jsonify({"error": "Vous êtes déjà abonné avec cet email."}), 400
+        # Validation : email obligatoire
+        if not email:
+            return jsonify({"error": "L'adresse email est obligatoire."}), 400
+
+        # Vérification stricte : un email = un seul abonnement
+        # On normalise l'email en minuscules pour éviter les doublons type "Test@gmail.com" == "test@gmail.com"
+        client_existant = Client.query.filter(
+            db.func.lower(Client.email) == email
+        ).first()
 
         if client_existant:
-            # Mettre à jour le client existant pour l'abonner
-            client_existant.nom = nom
-            client_existant.postnom = postnom
-            client_existant.sexe = sexe
-            client_existant.est_abonne = True
-            client_existant.date_abonnement = db.func.current_timestamp()
-            db.session.commit()
-            client_id = client_existant.id
+            if client_existant.est_abonne:
+                return jsonify({"error": "Cette adresse email est déjà inscrite à nos notifications. Vous êtes déjà abonné(e) !"}), 400
+            else:
+                # Client existant non abonné → on l'abonne
+                client_existant.nom = nom
+                client_existant.postnom = postnom
+                client_existant.sexe = sexe
+                client_existant.telephone = telephone
+                client_existant.est_abonne = True
+                client_existant.date_abonnement = db.func.current_timestamp()
+                db.session.commit()
+                client_id = client_existant.id
         else:
-            # Créer un nouveau client abonné
+            # Nouveau client → création
             nouveau_client = Client(
                 nom=nom,
                 postnom=postnom,
                 sexe=sexe,
                 email=email,
+                telephone=telephone,
                 est_abonne=True,
                 date_abonnement=db.func.current_timestamp()
             )
