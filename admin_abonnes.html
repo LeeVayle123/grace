@@ -2,37 +2,293 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Liste des Abonnés</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base Clients - Administration</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --fond: #050505;
+            --carte: #0f0f0f;
+            --carte-hover: #161616;
+            --texte: #f9fafb;
+            --accent: #f97316;
+            --accent-soft: rgba(249, 115, 22, 0.1);
+            --muted: #9ca3af;
+            --bordure: rgba(255, 255, 255, 0.08);
+            --sidebar-width: 280px;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--fond);
+            margin: 0;
+            padding: 0;
+            color: var(--texte);
+            display: flex;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Barre Latérale */
+        .barre-laterale {
+            width: var(--sidebar-width);
+            background-color: var(--carte);
+            border-right: 1px solid var(--bordure);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100%;
+            z-index: 100;
+        }
+
+        .logo-conteneur {
+            padding: 40px 25px;
+            border-bottom: 1px solid var(--bordure);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            text-align: center;
+        }
+
+        .logo-img {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent);
+            background: #fff;
+        }
+
+        .logo-texte {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--texte);
+            text-decoration: none;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+        }
+
+        .logo-texte .accent {
+            color: var(--accent);
+        }
+
+        .menu-navigation {
+            padding: 25px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .lien-navigation {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border-radius: 12px;
+        }
+
+        .lien-navigation i {
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .lien-navigation:hover {
+            background-color: var(--carte-hover);
+            color: var(--texte);
+        }
+
+        .lien-navigation.actif {
+            background-color: var(--accent-soft);
+            color: var(--accent);
+        }
+
+        /* Contenu Principal */
+        .contenu-principal {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 50px 60px;
+        }
+
+        .en-tete-page {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 50px;
+        }
+
+        .titre-page {
+            margin: 0;
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .sous-titre {
+            color: var(--muted);
+            margin-top: 10px;
+            font-size: 1.1rem;
+        }
+
+        /* Table Style */
+        .conteneur-tableau {
+            background: var(--carte);
+            border-radius: 20px;
+            border: 1px solid var(--bordure);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        thead {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        th {
+            padding: 20px 25px;
+            color: var(--muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--bordure);
+        }
+
+        td {
+            padding: 20px 25px;
+            border-bottom: 1px solid var(--bordure);
+            color: var(--texte);
+            font-size: 0.95rem;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        .badge-sexe {
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .badge-m { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+        .badge-f { background: rgba(236, 72, 153, 0.15); color: #f472b6; }
+
+        .email-link {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .email-link:hover {
+            text-decoration: underline;
+        }
+
+    </style>
 </head>
 <body>
-    <h1>Liste des Abonnés</h1>
-    <a href="/admin">⬅ Retour Admin</a>
-    <table border="1" cellpadding="8" cellspacing="0">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Nom</th>
-                <th>Postnom</th>
-                <th>Email</th>
-                <th>Sexe</th>
-                <th>Date abonnement</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for abonne in abonnes %}
-            <tr>
-                <td>{{ abonne.id }}</td>
-                <td>{{ abonne.nom }}</td>
-                <td>{{ abonne.postnom }}</td>
-                <td>{{ abonne.email }}</td>
-                <td>{{ abonne.sexe }}</td>
-                <td>{{ abonne.date_abonnement.strftime('%d/%m/%Y') if abonne.date_abonnement else '' }}</td>
-            </tr>
-            {% else %}
-            <tr><td colspan="6">Aucun abonné trouvé.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
+
+    <aside class="barre-laterale">
+        <div class="logo-conteneur">
+            <img src="/static/log.jpeg" alt="Logo" class="logo-img" onerror="this.src='https://placehold.co/100x100?text=GRACE'">
+            <div class="logo-texte">LA GRACE<br><span class="accent">SEEMIN</span></div>
+        </div>
+        <nav class="menu-navigation">
+            <a href="/admin" class="lien-navigation">
+                <i class="fas fa-chart-pie"></i> Vue d'ensemble
+            </a>
+            <a href="/commandes" class="lien-navigation">
+                <i class="fas fa-box-open"></i> Gérer les Commandes
+            </a>
+            <a href="/produits" class="lien-navigation">
+                <i class="fas fa-tags"></i> Gestion des Produits
+            </a>
+            <a href="/clients" class="lien-navigation actif">
+                <i class="fas fa-users"></i> Base Clients
+            </a>
+            <a href="/admin/avis" class="lien-navigation">
+                <i class="fas fa-comments"></i> Avis & Commentaires
+            </a>
+        </nav>
+    </aside>
+
+    <main class="contenu-principal">
+        <div class="en-tete-page">
+            <div>
+                <h1 class="titre-page">Base Clients (Abonnés)</h1>
+                <p class="sous-titre">Liste des personnes inscrites pour recevoir vos notifications</p>
+            </div>
+            <a href="/admin" style="background:#262626; color:white; padding:12px 25px; border-radius:12px; text-decoration:none; font-weight:600; border:1px solid rgba(255,255,255,0.1);">
+                <i class="fas fa-arrow-left" style="margin-right:8px;"></i> Retour
+            </a>
+        </div>
+
+        <div class="conteneur-tableau">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nom & Postnom</th>
+                        <th>Email</th>
+                        <th>Sexe</th>
+                        <th>Téléphone</th>
+                        <th>Date d'Abonnement</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for abonne in abonnes %}
+                    <tr>
+                        <td><span style="color: var(--muted);">#{{ abonne.id }}</span></td>
+                        <td>
+                            <div style="font-weight: 700;">{{ abonne.nom }} {{ abonne.postnom }}</div>
+                        </td>
+                        <td><a href="mailto:{{ abonne.email }}" class="email-link">{{ abonne.email }}</a></td>
+                        <td>
+                            {% if abonne.sexe == 'M' %}
+                            <span class="badge-sexe badge-m">Homme</span>
+                            {% elif abonne.sexe == 'F' %}
+                            <span class="badge-sexe badge-f">Femme</span>
+                            {% else %}
+                            <span style="color: var(--muted);">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ abonne.telephone or '-' }}</td>
+                        <td>
+                            <i class="far fa-calendar-alt" style="margin-right: 5px; color: var(--accent);"></i>
+                            {{ abonne.date_abonnement.strftime('%d/%m/%Y') if abonne.date_abonnement else '-' }}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 50px; color: var(--muted);">
+                            <i class="fas fa-user-slash" style="font-size: 3rem; display: block; margin-bottom: 15px;"></i>
+                            Aucun abonné trouvé dans votre base.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+
 </body>
 </html>

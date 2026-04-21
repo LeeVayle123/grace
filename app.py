@@ -590,8 +590,9 @@ def delete_produit(id):
         return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/clients', methods=['GET'])
+@admin_required
 def liste_clients():
-    return "Liste des clients (à implémenter)"
+    return redirect(url_for('admin_abonnes'))
 
 @app.route('/commandes', methods=['GET'])
 @admin_required
@@ -605,10 +606,12 @@ def admin_dashboard():
     total_commandes = Commande.query.count()
     en_attente = Commande.query.filter(Commande.statut.ilike('%attente%')).count()
     terminees = Commande.query.filter(Commande.statut.ilike('%termin%')).count()
+    total_abonnes = Client.query.filter_by(est_abonne=True).count()
     stats = {
         'total_commandes': total_commandes,
         'en_attente': en_attente,
-        'terminees': terminees
+        'terminees': terminees,
+        'total_abonnes': total_abonnes
     }
     return render_template('admin.html', stats=stats)
 
