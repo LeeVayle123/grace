@@ -190,11 +190,13 @@ with app.app_context():
             ]
             for table, col, col_type in migrations:
                 try:
-                    conn.execute(db.text(f'ALTER TABLE {table} ADD COLUMN {col} {col_type}'))
-                    conn.commit()
-                except Exception:
-                    # Si la colonne existe déjà, SQL renverra une erreur qu'on ignore ici
-                    pass
+                    conn.execute(db.text(f'ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {col} {col_type}'))
+                except Exception as e:
+                    print(f"Migration ignorée pour {table}.{col} : {e}")
+            try:
+                conn.commit()
+            except Exception:
+                pass
     except Exception as e:
         print(f"Erreur d'init DB : {e}")
 
