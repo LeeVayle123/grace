@@ -72,8 +72,26 @@ class Client(db.Model):
     telephone = db.Column(db.String(50))
     adresse = db.Column(db.Text)
     mot_de_passe = db.Column(db.String(255), nullable=True)
+    email = db.Column(db.String(150))
+    sexe = db.Column(db.String(20))  # M ou F
+    est_abonne = db.Column(db.Boolean, default=False)
+    date_abonnement = db.Column(db.DateTime)
     
     commandes = db.relationship('Commande', backref='client', lazy=True)
+    notifications = db.relationship('Notification', backref='client', lazy=True)
+
+class Notification(db.Model):
+    __tablename__ = 'notifications'
+    id = db.Column(db.Integer, primary_key=True)
+    id_client = db.Column(db.Integer, db.ForeignKey('clients.id'), nullable=False)
+    id_produit = db.Column(db.Integer, db.ForeignKey('produit.id'))
+    titre = db.Column(db.String(255), nullable=False)
+    message = db.Column(db.Text)
+    type_notification = db.Column(db.String(50), default='nouveau_produit')  # nouveau_produit, promotion, etc
+    est_lue = db.Column(db.Boolean, default=False)
+    date_creation = db.Column(db.DateTime, default=db.func.current_timestamp())
+    
+    produit = db.relationship('Produit', backref='notifications', lazy=True)
 
 class Commande(db.Model):
     __tablename__ = 'commande'
@@ -137,7 +155,11 @@ with app.app_context():
                 ('commande', 'rdv_adresse', 'TEXT'),
                 ('clients', 'postnom', 'VARCHAR(150)'),
                 ('clients', 'telephone', 'VARCHAR(50)'),
-                ('clients', 'adresse', 'TEXT')
+                ('clients', 'adresse', 'TEXT'),
+                ('clients', 'email', 'VARCHAR(150)'),
+                ('clients', 'sexe', 'VARCHAR(20)'),
+                ('clients', 'est_abonne', 'BOOLEAN DEFAULT FALSE'),
+                ('clients', 'date_abonnement', 'TIMESTAMP')
             ]
             for table, col, col_type in migrations:
                 try:
@@ -204,6 +226,119 @@ def admin_required(f):
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
+
+# --- Routes API pour les Abonnements ---
+@app.route('/api/abonne/inscription', methods=['POST'])
+def inscription_abonne():
+    """Inscrire un nouveau client abonné"""
+    try:
+        data = request.json
+        
+        # Vérifier si l'email existe déjà
+        email = data.get('email', '').strip()
+        if email and Client.query.filter_by(email=email).first():
+            return jsonify({"error": "Cet email est déjà utilisé"}), 400
+        
+        # Créer le nouveau client abonné
+        nouveau_client = Client(
+            nom=data.get('nom', 'Anonyme').strip(),
+            postnom=data.get('postnom', '').strip(),
+            sexe=data.get('sexe', '').strip(),
+            email=email,
+            mot_de_passe=bcrypt.generate_password_hash(data.get('mot_de_passe', 'guest')).decode('utf-8'),
+            est_abonne=True,
+            date_abonnement=db.func.current_timestamp(),
+            telephone=data.get('telephone', '').strip(),
+            adresse=data.get('adresse', '').strip()
+        )
+        db.session.add(nouveau_client)
+        db.session.commit()
+        
+        return jsonify({
+            "success": True, 
+            "message": "Inscription réussie! Bienvenue parmi nos abonnés.",
+            "client_id": nouveau_client.id
+        }), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/abonne/<int:client_id>/notifications', methods=['GET'])
+def get_notifications(client_id):
+    """Récupérer les notifications d'un client"""
+    try:
+        notifications = Notification.query.filter_by(id_client=client_id).order_by(
+            Notification.date_creation.desc()
+        ).all()
+        
+        return jsonify({
+            "notifications": [{
+                "id": n.id,
+                "titre": n.titre,
+                "message": n.message,
+                "type": n.type_notification,
+                "est_lue": n.est_lue,
+                "date": n.date_creation.strftime('%d/%m/%Y %H:%M'),
+                "id_produit": n.id_produit,
+                "produit_nom": n.produit.nom if n.produit else None,
+                "produit_image": n.produit.image_filename if n.produit else None
+            } for n in notifications]
+        }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/abonne/notification/<int:notification_id>/marquer-lue', methods=['POST'])
+def marquer_notification_lue(notification_id):
+    """Marquer une notification comme lue"""
+    try:
+        notification = Notification.query.get(notification_id)
+        if not notification:
+            return jsonify({"error": "Notification non trouvée"}), 404
+        
+        notification.est_lue = True
+        db.session.commit()
+        return jsonify({"success": True}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/abonne/<int:client_id>/info', methods=['GET'])
+def get_abonne_info(client_id):
+    """Récupérer les infos d'un abonné"""
+    try:
+        client = Client.query.get(client_id)
+        if not client:
+            return jsonify({"error": "Client non trouvé"}), 404
+        
+        return jsonify({
+            "id": client.id,
+            "nom": client.nom,
+            "postnom": client.postnom,
+            "email": client.email,
+            "sexe": client.sexe,
+            "telephone": client.telephone,
+            "adresse": client.adresse,
+            "est_abonne": client.est_abonne,
+            "date_abonnement": client.date_abonnement.strftime('%d/%m/%Y') if client.date_abonnement else None,
+            "nb_non_lues": Notification.query.filter_by(id_client=client_id, est_lue=False).count()
+        }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/abonne/<int:client_id>/desabonner', methods=['POST'])
+def desabonner_client(client_id):
+    """Désabonner un client"""
+    try:
+        client = Client.query.get(client_id)
+        if not client:
+            return jsonify({"error": "Client non trouvé"}), 404
+        
+        client.est_abonne = False
+        db.session.commit()
+        return jsonify({"success": True, "message": "Vous avez été désabonné"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
 # --- Routes ---
 @app.route('/')
@@ -348,6 +483,20 @@ def liste_produits():
             )
             db.session.add(nouveau_produit)
             db.session.commit()
+            
+            # --- Créer les notifications pour tous les abonnés ---
+            abonnes = Client.query.filter_by(est_abonne=True).all()
+            for abonne in abonnes:
+                notification = Notification(
+                    id_client=abonne.id,
+                    id_produit=nouveau_produit.id,
+                    titre=f"Nouveau produit: {nom}",
+                    message=f"Un nouveau produit '{nom}' vient d'être ajouté à notre boutique! Découvrez-le maintenant.",
+                    type_notification='nouveau_produit'
+                )
+                db.session.add(notification)
+            db.session.commit()
+            
             return redirect(url_for('liste_produits'))
         except Exception as e:
             db.session.rollback() # Important : annuler la transaction en cas d'échec

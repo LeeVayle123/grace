@@ -847,6 +847,190 @@
         }
 
         // Fenêtre de finalisation de commande (Formulaire client)
+        function ModalAbonne({ onClose, onSuccess }) {
+            const [formData, setFormData] = useState({
+                nom: '',
+                postnom: '',
+                sexe: '',
+                email: '',
+                mot_de_passe: '',
+                telephone: '',
+                adresse: ''
+            });
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState('');
+            const isMobile = window.innerWidth <= 600;
+
+            const handleChange = (e) => {
+                const { name, value } = e.target;
+                setFormData(prev => ({ ...prev, [name]: value }));
+            };
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setError('');
+                setLoading(true);
+
+                // Validation simple
+                if (!formData.nom || !formData.email || !formData.mot_de_passe || !formData.sexe) {
+                    setError('Veuillez remplir tous les champs obligatoires');
+                    setLoading(false);
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/abonne/inscription', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData)
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        setFormData({
+                            nom: '',
+                            postnom: '',
+                            sexe: '',
+                            email: '',
+                            mot_de_passe: '',
+                            telephone: '',
+                            adresse: ''
+                        });
+                        onSuccess(data.client_id);
+                    } else {
+                        setError(data.error || 'Une erreur est survenue');
+                    }
+                } catch (e) {
+                    setError('Erreur réseau: ' + e.message);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            return (
+                <motion.div
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                    onClick={onClose}
+                    style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', zIndex: 4000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? 15 : 20 }}
+                >
+                    <motion.div
+                        initial={{ opacity: 0, y: 50, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 50, scale: 0.95 }}
+                        transition={{ duration: 0.6, ease: "easeOut" }}
+                        onClick={e => e.stopPropagation()}
+                        style={{ background: '#1c1c1c', borderRadius: 24, width: '100%', maxWidth: 500, padding: isMobile ? 20 : 30, border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 30px 60px rgba(0,0,0,0.8)', position: 'relative', overflowY: 'auto', maxHeight: '90vh' }}
+                    >
+                        <button onClick={onClose} style={{ position: 'absolute', top: 15, right: 15, background: 'transparent', border: 'none', color: 'white', fontSize: '1.5rem', cursor: 'pointer' }}>
+                            ×
+                        </button>
+
+                        <div style={{ textAlign: 'center', marginBottom: 25 }}>
+                            <i className="fas fa-star" style={{ fontSize: '3rem', color: 'var(--accent)', marginBottom: 15 }}></i>
+                            <h2 style={{ margin: 0, color: 'white', fontSize: isMobile ? '1.3rem' : '1.5rem' }}>Rejoins notre communauté!</h2>
+                            <p style={{ color: '#888', margin: '10px 0 0 0' }}>Sois le premier à découvrir nos nouveautés</p>
+                        </div>
+
+                        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
+                            {error && (
+                                <div style={{ background: 'rgba(239, 68, 68, 0.2)', border: '1px solid #ef4444', color: '#fca5a5', padding: 12, borderRadius: 10, fontSize: '0.9rem' }}>
+                                    {error}
+                                </div>
+                            )}
+
+                            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 15 }}>
+                                <input
+                                    type="text"
+                                    name="nom"
+                                    placeholder="Nom *"
+                                    required
+                                    value={formData.nom}
+                                    onChange={handleChange}
+                                    style={{ background: '#262626', border: '1px solid #333', color: 'white', padding: 12, borderRadius: 10 }}
+                                />
+                                <input
+                                    type="text"
+                                    name="postnom"
+                                    placeholder="Postnom"
+                                    value={formData.postnom}
+                                    onChange={handleChange}
+                                    style={{ background: '#262626', border: '1px solid #333', color: 'white', padding: 12, borderRadius: 10 }}
+                                />
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 15 }}>
+                                <select
+                                    name="sexe"
+                                    required
+                                    value={formData.sexe}
+                                    onChange={handleChange}
+                                    style={{ background: '#262626', border: '1px solid #333', color: 'white', padding: 12, borderRadius: 10 }}
+                                >
+                                    <option value="">Sexe *</option>
+                                    <option value="M">Homme</option>
+                                    <option value="F">Femme</option>
+                                </select>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    placeholder="Email *"
+                                    required
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    style={{ background: '#262626', border: '1px solid #333', color: 'white', padding: 12, borderRadius: 10 }}
+                                />
+                            </div>
+
+                            <input
+                                type="password"
+                                name="mot_de_passe"
+                                placeholder="Mot de passe *"
+                                required
+                                value={formData.mot_de_passe}
+                                onChange={handleChange}
+                                style={{ background: '#262626', border: '1px solid #333', color: 'white', padding: 12, borderRadius: 10 }}
+                            />
+
+                            <input
+                                type="tel"
+                                name="telephone"
+                                placeholder="Téléphone"
+                                value={formData.telephone}
+                                onChange={handleChange}
+                                style={{ background: '#262626', border: '1px solid #333', color: 'white', padding: 12, borderRadius: 10 }}
+                            />
+
+                            <textarea
+                                name="adresse"
+                                placeholder="Adresse (optionnel)"
+                                value={formData.adresse}
+                                onChange={handleChange}
+                                style={{ background: '#262626', border: '1px solid #333', color: 'white', padding: 12, borderRadius: 10, minHeight: 80, fontFamily: 'Outfit' }}
+                            />
+
+                            <div style={{ display: 'flex', gap: 12, flexDirection: isMobile ? 'column' : 'row', marginTop: 10 }}>
+                                <button
+                                    type="button"
+                                    onClick={onClose}
+                                    style={{ flex: 1, padding: '15px', background: 'transparent', color: 'white', borderRadius: 10, border: '1px solid rgba(255,255,255,0.3)', fontWeight: 'bold', cursor: 'pointer' }}
+                                >
+                                    Annuler
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    style={{ flex: 1, padding: '15px', background: 'var(--accent)', color: 'white', borderRadius: 10, border: 'none', fontWeight: 'bold', cursor: 'pointer', opacity: loading ? 0.7 : 1 }}
+                                >
+                                    {loading ? "Inscription..." : "S'abonner"}
+                                </button>
+                            </div>
+                        </form>
+                    </motion.div>
+                </motion.div>
+            );
+        }
+
         function ModalCheckout({ items, onClose, onSucess }) {
             // État local pour les informations du client
             const [info, setInfo] = useState({ nom: '', postnom: '', telephone: '', adresse: '' });
@@ -1340,6 +1524,7 @@
             const [panier, setPanier] = useState([]);
             const [isCartOpen, setIsCartOpen] = useState(false);
             const [isMenuOpen, setIsMenuOpen] = useState(false);
+            const [isAbonneModalOpen, setIsAbonneModalOpen] = useState(false);
             const [toasts, setToasts] = useState([]);
             const nbItems = panier.reduce((acc, obj) => acc + obj.quantite, 0);
             const isMobile = window.innerWidth <= 600;
@@ -1432,7 +1617,9 @@
                                 <motion.button className="icone-btn" whileTap={{ scale: 0.9 }} title="Suivre ma commande" onClick={() => window.location.href='/suivi'}>
                                     <i className="fas fa-truck-fast"></i>
                                 </motion.button>
-                                <motion.button className="icone-btn" whileTap={{ scale: 0.9 }} title="Mon compte"><i className="far fa-user"></i></motion.button>
+                                <motion.button className="icone-btn" whileTap={{ scale: 0.9 }} title="Mon compte" onClick={() => setIsAbonneModalOpen(true)}>
+                                    <i className="far fa-user"></i>
+                                </motion.button>
                                 <motion.button className="icone-btn" whileTap={{ scale: 0.9 }} onClick={() => setIsCartOpen(true)}>
                                     <i className="fas fa-shopping-bag"></i>
                                     <AnimatePresence>
@@ -1495,6 +1682,19 @@
 
                     {/* Rendu des Modals avec AnimatePresence pour les transitions de sortie */}
                     <AnimatePresence>
+                        {isAbonneModalOpen && (
+                            <ModalAbonne
+                                key="modal-abonne"
+                                onClose={() => setIsAbonneModalOpen(false)}
+                                onSuccess={(clientId) => {
+                                    setIsAbonneModalOpen(false);
+                                    alert('Inscription réussie! Bienvenue dans notre communauté d\'abonnés.');
+                                    // Stockage du client_id en local storage pour récupérer les notifications plus tard
+                                    localStorage.setItem('abonne_client_id', clientId);
+                                }}
+                            />
+                        )}
+
                         {produitSelectionne && (
                             <ModalProduit
                                 key="modal-produit"
