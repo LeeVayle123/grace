@@ -852,10 +852,7 @@
                 nom: '',
                 postnom: '',
                 sexe: '',
-                email: '',
-                mot_de_passe: '',
-                telephone: '',
-                adresse: ''
+                email: ''
             });
             const [loading, setLoading] = useState(false);
             const [error, setError] = useState('');
@@ -872,7 +869,7 @@
                 setLoading(true);
 
                 // Validation simple
-                if (!formData.nom || !formData.email || !formData.mot_de_passe || !formData.sexe) {
+                if (!formData.nom || !formData.email || !formData.sexe) {
                     setError('Veuillez remplir tous les champs obligatoires');
                     setLoading(false);
                     return;
@@ -892,10 +889,7 @@
                             nom: '',
                             postnom: '',
                             sexe: '',
-                            email: '',
-                            mot_de_passe: '',
-                            telephone: '',
-                            adresse: ''
+                            email: ''
                         });
                         onSuccess(data.client_id);
                     } else {
@@ -982,32 +976,7 @@
                                 />
                             </div>
 
-                            <input
-                                type="password"
-                                name="mot_de_passe"
-                                placeholder="Mot de passe *"
-                                required
-                                value={formData.mot_de_passe}
-                                onChange={handleChange}
-                                style={{ background: '#262626', border: '1px solid #333', color: 'white', padding: 12, borderRadius: 10 }}
-                            />
-
-                            <input
-                                type="tel"
-                                name="telephone"
-                                placeholder="Téléphone"
-                                value={formData.telephone}
-                                onChange={handleChange}
-                                style={{ background: '#262626', border: '1px solid #333', color: 'white', padding: 12, borderRadius: 10 }}
-                            />
-
-                            <textarea
-                                name="adresse"
-                                placeholder="Adresse (optionnel)"
-                                value={formData.adresse}
-                                onChange={handleChange}
-                                style={{ background: '#262626', border: '1px solid #333', color: 'white', padding: 12, borderRadius: 10, minHeight: 80, fontFamily: 'Outfit' }}
-                            />
+                            {/* Champs mot de passe, téléphone, adresse supprimés */}
 
                             <div style={{ display: 'flex', gap: 12, flexDirection: isMobile ? 'column' : 'row', marginTop: 10 }}>
                                 <button
