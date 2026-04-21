@@ -246,7 +246,8 @@
                 <td style="width: 80px;">
                     {% if a.produit %}
                         {% if a.produit.image_filename %}
-                            <img src="/static/uploads/{{ a.produit.image_filename }}" alt="" style="width: 60px; height: 60px; object-fit: cover; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                            {% set avis_src = a.produit.image_filename if a.produit.image_filename.startswith('http') else '/static/uploads/' ~ a.produit.image_filename %}
+                            <img src="{{ avis_src }}" alt="" style="width: 60px; height: 60px; object-fit: cover; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
                         {% elif a.produit.video_filename %}
                             <video src="/static/uploads/{{ a.produit.video_filename }}" muted loop autoplay playsinline style="width: 60px; height: 60px; object-fit: cover; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);"></video>
                         {% else %}

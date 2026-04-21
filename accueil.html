@@ -717,6 +717,54 @@
         const { useState, useMemo } = React;
         const { motion, AnimatePresence } = window.Motion;
 
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+
+        async function initPushSubscription() {
+            if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+                return;
+            }
+            if (Notification.permission === 'denied') {
+                return;
+            }
+            try {
+                const registration = await navigator.serviceWorker.register('/static/sw.js');
+                let subscription = await registration.pushManager.getSubscription();
+                if (!subscription) {
+                    const response = await fetch('/api/push/vapid-public-key');
+                    const data = await response.json();
+                    if (!data.publicKey) {
+                        return;
+                    }
+                    if (Notification.permission !== 'granted') {
+                        const permission = await Notification.requestPermission();
+                        if (permission !== 'granted') {
+                            return;
+                        }
+                    }
+                    subscription = await registration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: urlBase64ToUint8Array(data.publicKey)
+                    });
+                }
+                await fetch('/api/push/subscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(subscription)
+                });
+            } catch (error) {
+                console.error('Erreur initialisation push :', error);
+            }
+        }
+
         /* ================== COMPOSANTS (COMPONENTS) ================== */
 
         // Système de notifications temporaires (Toasts)
@@ -855,13 +903,37 @@
                 email: '',
                 telephone: ''
             });
+            const [photoData, setPhotoData] = useState('');
+            const [photoPreview, setPhotoPreview] = useState(null);
             const [loading, setLoading] = useState(false);
             const [error, setError] = useState('');
+            const [notifStatus, setNotifStatus] = useState('');
             const isMobile = window.innerWidth <= 600;
 
             const handleChange = (e) => {
                 const { name, value } = e.target;
                 setFormData(prev => ({ ...prev, [name]: value }));
+            };
+
+            const handleEnableNotifications = async () => {
+                setNotifStatus('');
+                try {
+                    await initPushSubscription();
+                    setNotifStatus('Demande d’autorisation envoyée. Vérifiez votre navigateur.');
+                } catch (e) {
+                    setNotifStatus('Impossible d’activer les notifications pour le moment.');
+                }
+            };
+
+            const handlePhotoChange = (e) => {
+                const file = e.target.files && e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = () => {
+                    setPhotoData(reader.result);
+                    setPhotoPreview(reader.result);
+                };
+                reader.readAsDataURL(file);
             };
 
             const handleSubmit = async (e) => {
@@ -887,7 +959,7 @@
                     const response = await fetch('/api/abonne/inscription', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(formData)
+                        body: JSON.stringify({ ...formData, photo_data: photoData })
                     });
 
                     const data = await response.json();
@@ -900,6 +972,9 @@
                             email: '',
                             telephone: ''
                         });
+                        setPhotoData('');
+                        setPhotoPreview(null);
+                        await initPushSubscription();
                         onSuccess(data.client_id);
                     } else {
                         setError(data.error || 'Une erreur est survenue');
@@ -994,6 +1069,35 @@
                                 style={{ background: '#262626', border: '1px solid #333', color: 'white', padding: 12, borderRadius: 10, width: '100%', boxSizing: 'border-box' }}
                             />
 
+                            <label style={{ display: 'flex', flexDirection: 'column', gap: 10, color: 'white', fontSize: '0.95rem' }}>
+                                Photo de profil (optionnel)
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handlePhotoChange}
+                                    style={{ background: '#262626', border: '1px solid #333', color: 'white', padding: 10, borderRadius: 10 }}
+                                />
+                            </label>
+                            {photoPreview && (
+                                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                    <img src={photoPreview} alt="Aperçu" style={{ width: 120, height: 120, objectFit: 'cover', borderRadius: 18, border: '1px solid rgba(255,255,255,0.15)' }} />
+                                </div>
+                            )}
+
+                            <div style={{ display: 'grid', gap: 12, marginTop: 10 }}>
+                                <button
+                                    type="button"
+                                    onClick={handleEnableNotifications}
+                                    style={{ width: '100%', padding: '15px', background: 'rgba(249,179,0,0.15)', color: 'white', borderRadius: 10, border: '1px solid rgba(249,179,0,0.35)', fontWeight: 'bold', cursor: 'pointer' }}
+                                >
+                                    Activer les notifications
+                                </button>
+                                {notifStatus && (
+                                    <div style={{ color: '#fcd34d', fontSize: '0.9rem', padding: '10px 12px', background: 'rgba(255,255,255,0.05)', borderRadius: 10 }}>
+                                        {notifStatus}
+                                    </div>
+                                )}
+                            </div>
                             <div style={{ display: 'flex', gap: 12, flexDirection: isMobile ? 'column' : 'row', marginTop: 10 }}>
                                 <button
                                     type="button"
@@ -1748,6 +1852,12 @@
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
+
+        window.addEventListener('load', () => {
+            if ('serviceWorker' in navigator && 'PushManager' in window && Notification.permission === 'granted') {
+                initPushSubscription();
+            }
+        });
 
         // Confirmation de sortie : demande si l'utilisateur veut quitter le site
         let confirmQuitActive = true;

@@ -7,6 +7,22 @@ from werkzeug.utils import secure_filename
 from functools import wraps
 from supabase import create_client, Client
 import traceback
+import base64
+import re
+try:
+    from pywebpush import webpush, WebPushException
+    PUSH_ENABLED = True
+except ImportError:
+    PUSH_ENABLED = False
+
+# --- Clés VAPID pour Web Push Notifications ---
+VAPID_PRIVATE_KEY = """-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg7WAYtbSjbKwrn3/k
+gNnHxlLcva2Fv8KZ3aNBiBJjlQehRANCAAT1CZv7NIjooJd4KJJFrDa6GZ8IQbjm
+/mboAL00b4RaEaMW0esNYNy0TBq8KsomLWJYDvcG4fsSEayfFvWJElVS
+-----END PRIVATE KEY-----"""
+VAPID_PUBLIC_KEY = "BPUJm_s0iOigl3gokkWsNroZnwhBuOb-ZugAvTRvhFoRoxbR6w1g3LRMGrwqyiYtYlgO9wbh-xIRrJ8W9YkSVVI="
+VAPID_CLAIMS = {"sub": "mailto:admin@lagraceseemin.com"}
 
 # Installation de l'application (Adaptée à la structure Render)
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -73,6 +89,7 @@ class Client(db.Model):
     adresse = db.Column(db.Text)
     mot_de_passe = db.Column(db.String(255), nullable=True)
     email = db.Column(db.String(150))
+    photo_filename = db.Column(db.String(255))
     sexe = db.Column(db.String(20))  # M ou F
     est_abonne = db.Column(db.Boolean, default=False)
     date_abonnement = db.Column(db.DateTime)
@@ -132,6 +149,15 @@ class Avis(db.Model):
     # Relation virtuelle pour l'admin
     produit = db.relationship('Produit', primaryjoin="Avis.id_produit == Produit.id", foreign_keys="Avis.id_produit", backref='avis_list', lazy=True)
 
+class PushSubscription(db.Model):
+    """Stocke les abonnements Push des navigateurs des clients"""
+    __tablename__ = 'push_subscriptions'
+    id = db.Column(db.Integer, primary_key=True)
+    endpoint = db.Column(db.Text, unique=True, nullable=False)
+    p256dh = db.Column(db.Text, nullable=False)
+    auth = db.Column(db.Text, nullable=False)
+    date_creation = db.Column(db.DateTime, default=db.func.current_timestamp())
+
 # --- Initialisation de la Base de Données ---
 with app.app_context():
     try:
@@ -158,6 +184,7 @@ with app.app_context():
                 ('clients', 'adresse', 'TEXT'),
                 ('clients', 'email', 'VARCHAR(150)'),
                 ('clients', 'sexe', 'VARCHAR(20)'),
+                ('clients', 'photo_filename', 'VARCHAR(255)'),
                 ('clients', 'est_abonne', 'BOOLEAN DEFAULT FALSE'),
                 ('clients', 'date_abonnement', 'TIMESTAMP')
             ]
@@ -227,6 +254,102 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+# --- Utilitaire : Enregistrer une image base64 dans uploads ---
+def save_base64_image(data_uri, folder='static/uploads'):
+    if not data_uri or not data_uri.startswith('data:image/'):
+        return None
+    try:
+        header, encoded = data_uri.split(',', 1)
+        match = re.match(r'data:(image/[^;]+);base64', header)
+        if not match:
+            return None
+        image_type = match.group(1).split('/')[-1]
+        if image_type == 'jpeg':
+            image_type = 'jpg'
+        filename = f"abonne_{os.urandom(4).hex()}.{image_type}"
+        os.makedirs(folder, exist_ok=True)
+        path = os.path.join(folder, filename)
+        with open(path, 'wb') as f:
+            f.write(base64.b64decode(encoded))
+        return filename
+    except Exception as e:
+        print(f"Erreur de sauvegarde d'image base64 : {e}")
+        return None
+
+# --- Utilitaire : Envoyer une notification push à tous les abonnés ---
+def envoyer_push_tous(titre, corps, url='/', image=None):
+    """Envoie une notification Web Push à tous les navigateurs abonnés"""
+    if not PUSH_ENABLED:
+        print("pywebpush non disponible, notification ignorée.")
+        return
+    subscriptions = PushSubscription.query.all()
+    payload = json.dumps({"title": titre, "body": corps, "url": url, "image": image})
+    erreurs = []
+    for sub in subscriptions:
+        try:
+            webpush(
+                subscription_info={
+                    "endpoint": sub.endpoint,
+                    "keys": {"p256dh": sub.p256dh, "auth": sub.auth}
+                },
+                data=payload,
+                vapid_private_key=VAPID_PRIVATE_KEY,
+                vapid_claims=VAPID_CLAIMS
+            )
+        except WebPushException as e:
+            # Si l'abonnement est expiré (410), on le supprime
+            if e.response and e.response.status_code in (404, 410):
+                db.session.delete(sub)
+                db.session.commit()
+            else:
+                erreurs.append(str(e))
+        except Exception as e:
+            erreurs.append(str(e))
+    if erreurs:
+        print(f"Erreurs push: {erreurs}")
+
+# --- Routes API Web Push ---
+@app.route('/api/push/vapid-public-key', methods=['GET'])
+def get_vapid_public_key():
+    """Retourne la clé publique VAPID pour le frontend"""
+    return jsonify({"publicKey": VAPID_PUBLIC_KEY})
+
+@app.route('/api/push/subscribe', methods=['POST'])
+def push_subscribe():
+    """Sauvegarde un abonnement push navigateur"""
+    try:
+        data = request.json
+        endpoint = data.get('endpoint')
+        p256dh = data.get('keys', {}).get('p256dh')
+        auth = data.get('keys', {}).get('auth')
+        if not endpoint or not p256dh or not auth:
+            return jsonify({"error": "Données incomplètes"}), 400
+        # Vérifie si déjà enregistré
+        existant = PushSubscription.query.filter_by(endpoint=endpoint).first()
+        if not existant:
+            sub = PushSubscription(endpoint=endpoint, p256dh=p256dh, auth=auth)
+            db.session.add(sub)
+            db.session.commit()
+        return jsonify({"success": True}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/push/unsubscribe', methods=['POST'])
+def push_unsubscribe():
+    """Supprime un abonnement push"""
+    try:
+        data = request.json
+        endpoint = data.get('endpoint')
+        sub = PushSubscription.query.filter_by(endpoint=endpoint).first()
+        if sub:
+            db.session.delete(sub)
+            db.session.commit()
+        return jsonify({"success": True}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
 # --- Routes API pour les Abonnements ---
 @app.route('/api/abonne/inscription', methods=['POST'])
 def inscription_abonne():
@@ -258,18 +381,27 @@ def inscription_abonne():
                 client_existant.postnom = postnom
                 client_existant.sexe = sexe
                 client_existant.telephone = telephone
+                if data.get('photo_data'):
+                    photo_filename = save_base64_image(data.get('photo_data'))
+                    if photo_filename:
+                        client_existant.photo_filename = photo_filename
                 client_existant.est_abonne = True
                 client_existant.date_abonnement = db.func.current_timestamp()
                 db.session.commit()
                 client_id = client_existant.id
         else:
             # Nouveau client → création
+            photo_filename = None
+            if data.get('photo_data'):
+                photo_filename = save_base64_image(data.get('photo_data'))
+
             nouveau_client = Client(
                 nom=nom,
                 postnom=postnom,
                 sexe=sexe,
                 email=email,
                 telephone=telephone,
+                photo_filename=photo_filename,
                 est_abonne=True,
                 date_abonnement=db.func.current_timestamp()
             )
@@ -507,9 +639,9 @@ def liste_produits():
             db.session.add(nouveau_produit)
             db.session.commit()
             
-            # --- Créer les notifications pour tous les clients ---
-            clients = Client.query.all()
-            for client in clients:
+            # --- Créer les notifications DB pour tous les clients abonnés ---
+            clients_abonnes = Client.query.filter_by(est_abonne=True).all()
+            for client in clients_abonnes:
                 notification = Notification(
                     id_client=client.id,
                     id_produit=nouveau_produit.id,
@@ -519,6 +651,24 @@ def liste_produits():
                 )
                 db.session.add(notification)
             db.session.commit()
+
+            push_image = None
+            if image_filename:
+                if image_filename.startswith('http'):
+                    push_image = image_filename
+                else:
+                    push_image = f"/static/uploads/{image_filename}"
+
+            # --- Envoyer les Web Push Notifications (téléphone/navigateur) ---
+            try:
+                envoyer_push_tous(
+                    titre=f"Nouveau produit chez LA GRACE SEEMIN !",
+                    corps=f"{nom} vient d'arriver dans notre boutique. Découvrez-le maintenant !",
+                    url="/",
+                    image=push_image
+                )
+            except Exception as push_err:
+                print(f"Erreur push: {push_err}")
             
             return redirect(url_for('liste_produits'))
         except Exception as e:
@@ -618,13 +768,14 @@ def admin_dashboard():
     en_attente = Commande.query.filter(Commande.statut.ilike('%attente%')).count()
     terminees = Commande.query.filter(Commande.statut.ilike('%termin%')).count()
     total_abonnes = Client.query.filter_by(est_abonne=True).count()
+    recent_abonnes = Client.query.filter_by(est_abonne=True).order_by(Client.date_abonnement.desc()).limit(5).all()
     stats = {
         'total_commandes': total_commandes,
         'en_attente': en_attente,
         'terminees': terminees,
         'total_abonnes': total_abonnes
     }
-    return render_template('admin.html', stats=stats)
+    return render_template('admin.html', stats=stats, recent_abonnes=recent_abonnes)
 
 # --- Liste des abonnés pour l'admin ---
 @app.route('/admin/abonnes', methods=['GET'])

@@ -347,6 +347,48 @@
                     </div>
                 </a>
 
+                <a href="/admin/abonnes" class="carte-action">
+                    <i class="fas fa-user-check" style="color: #34d399;"></i>
+                    <div class="info-action">
+                        <h3>Abonnés</h3>
+                        <p>Consulter la liste des clients abonnés</p>
+                    </div>
+                </a>
+
+            </div>
+        </section>
+
+        <section style="margin-top: 40px;">
+            <h2 class="titre-section">Derniers abonnés</h2>
+            <div class="conteneur-tableau" style="margin-top: 20px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nom</th>
+                            <th>Email</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if recent_abonnes %}
+                            {% for abonne in recent_abonnes %}
+                                <tr>
+                                    <td><span style="color: var(--muted);">#{{ abonne.id }}</span></td>
+                                    <td>{{ abonne.nom }} {{ abonne.postnom }}</td>
+                                    <td><a href="mailto:{{ abonne.email }}" class="email-link">{{ abonne.email }}</a></td>
+                                    <td>{{ abonne.date_abonnement.strftime('%d/%m/%Y') if abonne.date_abonnement else '-' }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="4" style="text-align:center; padding:40px; color: var(--muted);">
+                                    Aucun abonné récent.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
             </div>
         </section>
 

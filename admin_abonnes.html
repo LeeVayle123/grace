@@ -247,6 +247,7 @@
                 <thead>
                     <tr>
                         <th>ID</th>
+                        <th>Photo</th>
                         <th>Nom & Postnom</th>
                         <th>Email</th>
                         <th>Sexe</th>
@@ -258,6 +259,16 @@
                     {% for abonne in abonnes %}
                     <tr>
                         <td><span style="color: var(--muted);">#{{ abonne.id }}</span></td>
+                        <td>
+                            {% if abonne.photo_filename %}
+                                {% set photo_src = abonne.photo_filename if abonne.photo_filename.startswith('http') else '/static/uploads/' ~ abonne.photo_filename %}
+                                <img src="{{ photo_src }}" alt="Photo abonné" style="width: 48px; height: 48px; object-fit: cover; border-radius: 50%; border: 2px solid rgba(249,115,22,0.3);">
+                            {% else %}
+                                <div style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.06); border-radius: 50%; color: var(--muted);">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            {% endif %}
+                        </td>
                         <td>
                             <div style="font-weight: 700;">{{ abonne.nom }} {{ abonne.postnom }}</div>
                         </td>
