@@ -28,8 +28,9 @@ VAPID_CLAIMS = {"sub": "mailto:admin@lagraceseemin.com"}
 base_dir = os.path.dirname(os.path.abspath(__file__))
 # On configure le dossier statique pour pointer vers la racine, ainsi url_for('static') fonctionnera partout
 app = Flask(__name__, 
-            template_folder='templates', 
-            static_folder='static')
+            template_folder=os.path.join(base_dir, 'templates'), 
+            static_folder=os.path.join(base_dir, 'static'),
+            static_url_path='/static')
 
 # --- Configuration Supabase (Stockage permanent) ---
 SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://mfdotnwtjbqqnkgcblph.supabase.co')
@@ -217,9 +218,9 @@ def debug_test():
     try:
         from sqlalchemy import text
         db.session.execute(text('SELECT 1'))
-        results.append("✅ BASE DE DONNÉES : Connectée")
+        results.append("BASE DE DONNÉES : Connectée")
     except Exception as e:
-        results.append(f"❌ BASE DE DONNÉES : Erreur ({e})")
+        results.append(f"BASE DE DONNÉES : Erreur ({e})")
 
     # 2. Test Supabase
     if supabase:
@@ -227,23 +228,23 @@ def debug_test():
             # Test simple : lister les buckets
             buckets = supabase.storage.list_buckets()
             if any(b.name == BUCKET_NAME for b in buckets):
-                results.append(f"✅ SUPABASE : Client OK, Bucket '{BUCKET_NAME}' trouvé")
+                results.append(f"SUPABASE : Client OK, Bucket '{BUCKET_NAME}' trouvé")
             else:
-                results.append(f"⚠️ SUPABASE : Client OK, mais Bucket '{BUCKET_NAME}' NON TROUVÉ")
+                results.append(f" SUPABASE : Client OK, mais Bucket '{BUCKET_NAME}' NON TROUVÉ")
         except Exception as e:
-            results.append(f"❌ SUPABASE : Erreur lors du test de stockage ({e})")
+            results.append(f"SUPABASE : Erreur lors du test de stockage ({e})")
     else:
-        results.append("❌ SUPABASE : Client non initialisé (Vérifiez vos clés)")
+        results.append("SUPABASE : Client non initialisé (Vérifiez vos clés)")
 
     # 3. Test des dossiers locaux
     upload_path = os.path.join(base_dir, 'static', 'uploads')
     if os.path.exists(upload_path):
-        results.append(f"✅ DOSSIER UPLOADS : Présent ({upload_path})")
+        results.append(f"DOSSIER UPLOADS : Présent ({upload_path})")
     else:
-        results.append(f"⚠️ DOSSIER UPLOADS : Absent (Sera créé au premier upload)")
+        results.append(f"DOSSIER UPLOADS : Absent (Sera créé au premier upload)")
 
     # 4. Vérification Versions & Env
-    results.append(f"ℹ️ PYTHON_VERSION : {os.environ.get('PYTHON_VERSION', 'Défaut')}")
+    results.append(f"ℹPYTHON_VERSION : {os.environ.get('PYTHON_VERSION', 'Défaut')}")
     
     return "<br>".join(results)
 
