@@ -2,6 +2,7 @@ import os
 import json
 from pathlib import Path
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session, flash, send_from_directory
+from jinja2 import ChoiceLoader, FileSystemLoader
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
@@ -57,6 +58,13 @@ app = Flask(__name__,
             template_folder=str(templates_dir), 
             static_folder=str(static_dir),
             static_url_path='/static')
+
+# Make Jinja search for templates in multiple locations (templates/ and repository root).
+# This helps when the deploy environment places HTML files outside the expected templates/ folder.
+app.jinja_loader = ChoiceLoader([
+    FileSystemLoader(str(templates_dir)),
+    FileSystemLoader(str(base_dir)),
+])
 
 # --- Configuration Supabase (Stockage permanent) ---
 SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://mfdotnwtjbqqnkgcblph.supabase.co')
