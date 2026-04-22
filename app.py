@@ -411,6 +411,8 @@ def login():
         
         # Vérification simple (à améliorer avec des hashs en production réelle)
         if username == 'bunnyjaiteh85' and password == 'lamin1985':
+            session.clear()
+            session.permanent = False
             session['admin_logged_in'] = True
             return redirect(url_for('admin_dashboard'))
         else:
@@ -419,8 +421,8 @@ def login():
 
 @app.route('/logout')
 def logout():
-    # Déconnexion de la session admin
-    session.pop('admin_logged_in', None)
+    # Déconnexion complète de la session admin
+    session.clear()
     return redirect(url_for('login'))
 
 # --- Routes Boutique (Client) ---
@@ -590,8 +592,9 @@ def delete_produit(id):
         return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/clients', methods=['GET'])
+@admin_required
 def liste_clients():
-    return "Liste des clients (à implémenter)"
+    return redirect(url_for('admin_abonnes'))
 
 @app.route('/commandes', methods=['GET'])
 @admin_required
