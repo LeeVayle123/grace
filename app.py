@@ -1,5 +1,6 @@
 import os
 import json
+from pathlib import Path
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session, flash, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
@@ -25,11 +26,20 @@ VAPID_PUBLIC_KEY = "BPUJm_s0iOigl3gokkWsNroZnwhBuOb-ZugAvTRvhFoRoxbR6w1g3LRMGrwq
 VAPID_CLAIMS = {"sub": "mailto:admin@lagraceseemin.com"}
 
 # Installation de l'application (Adaptée à la structure Render)
-base_dir = os.path.dirname(os.path.abspath(__file__))
-# On configure le dossier statique pour pointer vers la racine, ainsi url_for('static') fonctionnera partout
+base_dir = Path(__file__).resolve().parent
+templates_dir = base_dir / 'templates'
+static_dir = base_dir / 'static'
+
+if not templates_dir.exists():
+    raise RuntimeError(f"Templates directory not found: {templates_dir}")
+if not static_dir.exists():
+    raise RuntimeError(f"Static directory not found: {static_dir}")
+
+# On configure Flask avec des chemins absolus pour templates et assets statiques
 app = Flask(__name__, 
-            template_folder=os.path.join(base_dir, 'templates'), 
-            static_folder=os.path.join(base_dir, 'static'),
+            root_path=str(base_dir),
+            template_folder=str(templates_dir), 
+            static_folder=str(static_dir),
             static_url_path='/static')
 
 # --- Configuration Supabase (Stockage permanent) ---
