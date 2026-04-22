@@ -28,9 +28,8 @@ VAPID_CLAIMS = {"sub": "mailto:admin@lagraceseemin.com"}
 base_dir = os.path.dirname(os.path.abspath(__file__))
 # On configure le dossier statique pour pointer vers la racine, ainsi url_for('static') fonctionnera partout
 app = Flask(__name__, 
-            template_folder=base_dir, 
-            static_folder=base_dir, 
-            static_url_path='/static')
+            template_folder='templates', 
+            static_folder='static')
 
 # --- Configuration Supabase (Stockage permanent) ---
 SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://mfdotnwtjbqqnkgcblph.supabase.co')
@@ -554,8 +553,8 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
         
-        # Vérification simple (à améliorer avec des hashs en production réelle)
-        if username == 'admin' and password == 'admin123':
+        # authentification admin 
+        if username == 'bunnyjaiteh85' and password == 'lamin1985':
             session['admin_logged_in'] = True
             return redirect(url_for('admin_dashboard'))
         else:
