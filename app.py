@@ -31,9 +31,25 @@ templates_dir = base_dir / 'templates'
 static_dir = base_dir / 'static'
 
 if not templates_dir.exists():
-    raise RuntimeError(f"Templates directory not found: {templates_dir}")
+    templates_dir.mkdir(parents=True, exist_ok=True)
+    # Create a minimal fallback template so the app can start and provide guidance
+    default_accueil = templates_dir / 'accueil.html'
+    if not default_accueil.exists():
+        default_accueil.write_text(
+            '<!doctype html>\n'
+            '<html lang="fr">\n'
+            '<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">\n'
+            '<title>Bienvenue</title></head>\n'
+            '<body style="font-family:Arial,Helvetica,sans-serif;margin:40px;color:#222">\n'
+            '<h1>Application déployée — template manquant</h1>\n'
+            '<p>Le dossier <strong>templates/</strong> n\'avait pas été commité sur le dépôt.\n'
+            'Ajoutez vos fichiers HTML dans <code>templates/</code> et redéployez.</p>\n'
+            '</body>\n'
+            '</html>\n',
+            encoding='utf-8'
+        )
 if not static_dir.exists():
-    raise RuntimeError(f"Static directory not found: {static_dir}")
+    static_dir.mkdir(parents=True, exist_ok=True)
 
 # On configure Flask avec des chemins absolus pour templates et assets statiques
 app = Flask(__name__, 
